@@ -12,11 +12,11 @@ variables:
     value: GA
 
 stages:
-  - stage: Delete_Users
+  - stage: DeleteGuestUsers
     pool:
       vmImage: ${{ variables.agentPool }}
     jobs:
-      - job: Delete_Users
+      - job: DeleteUnacceptedInvites
         timeoutInMinutes: ${{ variables.timeoutInMinutes }}
         steps:
           - checkout: self
@@ -26,4 +26,15 @@ stages:
               azureSubscription: ${{ variables.service_connection }}
               scriptType: bash
               scriptLocation: scriptPath
-              scriptPath: '$(System.DefaultWorkingDirectory)/pipeline-scripts/delete-users.sh'
+              scriptPath: "$(System.DefaultWorkingDirectory)/pipeline-scripts/delete-old-guest-invites.sh"
+      - job: DeleteInactiveGuestUsers
+        timeoutInMinutes: ${{ variables.timeoutInMinutes }}
+        steps:
+          - checkout: self
+          - task: AzureCLI@2
+            displayName: Azure CLI
+            inputs:
+              azureSubscription: ${{ variables.service_connection }}
+              scriptType: bash
+              scriptLocation: scriptPath
+              scriptPath: "$(System.DefaultWorkingDirectory)/pipeline-scripts/delete-inactive-guest-users.sh"
