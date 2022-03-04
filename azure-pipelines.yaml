@@ -1,0 +1,29 @@
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+  - name: timeoutInMinutes
+    value: 60
+  - name: agentPool
+    value: ubuntu-18.04
+  - name: service_connection
+    value: DTS-CFTPTL-INTSVC
+
+stages:
+  - stage: Delete Users
+    pool:
+      vmImage: ${{ variables.agentPool }}
+    jobs:
+      - job: Delete Users
+        timeoutInMinutes: ${{ variables.timeoutInMinutes }}
+        steps:
+          - checkout: self
+          - task: AzureCLI@2
+            displayName: Azure CLI
+            inputs:
+              azureSubscription: Pay-As-You-Go(f7ce4a37-e77e-4c69-8138-c668bdf0c994)
+              scriptType: bash
+              scriptLocation: scriptPath
+              scriptPath: '$(System.DefaultWorkingDirectory)/pipeline-scripts/delete-users.sh'
