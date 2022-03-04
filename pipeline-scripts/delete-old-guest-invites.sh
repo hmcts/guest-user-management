@@ -16,7 +16,7 @@ delete_old_invites() {
 
   echo "Number of users to be deleted: $(jq -r .[].ObjectId ${users_file} | wc -l )"
 
-  while IFS=" " read -r display_name object_id mail
+  while IFS=" " read -r object_id mail display_name
   do
 
     delete_user "$object_id" "$mail" "$display_name" &
