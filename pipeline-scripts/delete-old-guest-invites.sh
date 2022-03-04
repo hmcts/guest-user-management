@@ -4,7 +4,7 @@ set -e
 month_ago=$(date +%Y-%m-%dT%H:%m:%SZ -d '31 days ago')
 week_ago=$(date +%Y-%m-%dT%H:%m:%SZ -d '7 days ago')
 
-. ./delete-user.sh
+. pipeline-scripts/delete-user.sh
 
 # Delete users that haven't logged in within 31 days and are over a week old
 delete_inactive_users() {
