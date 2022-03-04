@@ -1,8 +1,12 @@
 #!/bin/bash
 set -e
 
-month_ago=$(date +%Y-%m-%dT%H:%m:%SZ -d '31 days ago')
-week_ago=$(date +%Y-%m-%dT%H:%m:%SZ -d '7 days ago')
+max_inactive_days=31
+min_user_age_days=7
+
+max_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${max_inactive_days} days ago")
+min_user_age_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${min_user_age_days} days ago")
+
 users_file=guests.json
 
 . pipeline-scripts/delete-user.sh
@@ -11,15 +15,15 @@ users_file=guests.json
 delete_inactive_guests() {
 
   # Create file with list of guest users that have accepted their invite
-  az rest --method GET --uri "https://graph.microsoft.com/beta/users?\$filter=externalUserState eq 'Accepted' and userType eq 'Guest' and createdDateTime le ${week_ago}&\$select=id,displayName,signInActivity,createdDateTime,mail" > ${users_file}
+  az rest --method GET --uri "https://graph.microsoft.com/beta/users?\$filter=externalUserState eq 'Accepted' and userType eq 'Guest' and createdDateTime le ${min_user_age_date}&\$select=id,displayName,signInActivity,createdDateTime,mail" > ${users_file}
   
-  echo "Number of users to be deleted: $(jq -r '.value[] | select(.signInActivity.lastSignInDateTime < "'${month_ago}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${month_ago}'") | .id' ${users_file} | wc -l)"
+  echo "Number of users to be deleted: $(jq -r '.value[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | .id' ${users_file} | wc -l)"
   
   while IFS=" " read -r object_id mail display_name
   do
     delete_user "$object_id" "$mail" "$display_name" &
 
-  done <<< "$(jq -r '.value[] | select(.signInActivity.lastSignInDateTime < "'${month_ago}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${month_ago}'") | "\(.id) \(.mail) \(.displayName)"' ${users_file})"
+  done <<< "$(jq -r '.value[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | "\(.id) \(.mail) \(.displayName)"' ${users_file})"
   wait
   
 }
