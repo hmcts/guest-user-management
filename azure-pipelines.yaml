@@ -9,7 +9,7 @@ variables:
   - name: agentPool
     value: ubuntu-18.04
   - name: service_connection
-    value: DTS-CFTPTL-INTSVC
+    value: GA
 
 stages:
   - stage: Delete_Users
