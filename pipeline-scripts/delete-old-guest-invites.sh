@@ -4,21 +4,24 @@ set -e
 month_ago=$(date +%Y-%m-%dT%H:%m:%SZ -d '31 days ago')
 week_ago=$(date +%Y-%m-%dT%H:%m:%SZ -d '7 days ago')
 
+users_file=unaccepted_invites.txt
+
 . pipeline-scripts/delete-user.sh
 
 # Remove guest users in Azure AAD that haven't accepted their invite after 31 days
 delete_old_invites() {
   # Create file with users that haven't accepted invite within a week
-  az ad user list --query="[?userType=='Guest' && userState=='PendingAcceptance' && createdDateTime<'${week_ago}' ].{DisplayName: displayName, ObjectId:objectId, Mail:mail}" -o table > unaccepted_invites.txt
+  az ad user list --query="[?userType=='Guest' && userState=='PendingAcceptance' && createdDateTime<'${week_ago}' ].{DisplayName: displayName, ObjectId:objectId, Mail:mail}" -o json > ${users_file}
 
-  echo "Number of users to be deleted: $(tail -n+3 unaccepted_invites.txt | wc -l)"
+
+  echo "Number of users to be deleted: $(jq -r .[].ObjectId ${users_file} | wc -l )"
 
   while IFS=" " read -r display_name object_id mail
   do
 
     delete_user "$object_id" "$mail" "$display_name" &
   
-  done <<< "$(tail -n+3 unaccepted_invites.txt)"
+  done <<< "$(jq -r '.[] | "\(.ObjectId) \(.Mail) \(.DisplayName)"' ${users_file})"
   wait
   
 }
