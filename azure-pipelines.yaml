@@ -12,7 +12,7 @@ variables:
     value: GA
 
 stages:
-  - stage: DeleteGuestUsers
+  - stage: DeleteInactiveGuestUsers
     pool:
       vmImage: ${{ variables.agentPool }}
     jobs:
