@@ -29,6 +29,7 @@ stages:
               scriptPath: "$(System.DefaultWorkingDirectory)/pipeline-scripts/delete-old-guest-invites.sh"
       - job: DeleteInactiveGuestUsers
         timeoutInMinutes: ${{ variables.timeoutInMinutes }}
+        condition: succeeded()
         steps:
           - checkout: self
           - task: AzureCLI@2
