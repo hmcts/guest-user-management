@@ -12,11 +12,11 @@ variables:
     value: DTS-CFTPTL-INTSVC
 
 stages:
-  - stage: Delete Users
+  - stage: Delete_Users
     pool:
       vmImage: ${{ variables.agentPool }}
     jobs:
-      - job: Delete Users
+      - job: Delete_Users
         timeoutInMinutes: ${{ variables.timeoutInMinutes }}
         steps:
           - checkout: self
