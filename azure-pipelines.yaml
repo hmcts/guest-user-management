@@ -1,3 +1,12 @@
+name: guest-user-management
+
+schedules:
+  - cron: "0 6 * * *"
+    displayName: Daily build @ 16am
+    branches:
+      include:
+        - main
+
 trigger:
   branches:
     include:
