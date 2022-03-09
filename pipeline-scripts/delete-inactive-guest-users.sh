@@ -4,7 +4,7 @@ set -e
 branch=$1
 
 max_inactive_days=93
-min_user_age_days=7
+min_user_age_days=14
 
 max_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${max_inactive_days} days ago")
 min_user_age_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${min_user_age_days} days ago")
