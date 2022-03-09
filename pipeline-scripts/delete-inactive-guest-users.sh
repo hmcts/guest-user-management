@@ -13,7 +13,7 @@ users_file=guests.json
 
 . pipeline-scripts/delete-user.sh $branch
 
-# Delete users that haven't logged in within 31 days and are over a week old
+# Delete users that haven't logged in within set number of days and are over a week old
 delete_inactive_guests() {
 
   # Create file with list of guest users that have accepted their invite
@@ -32,7 +32,7 @@ delete_inactive_guests() {
 
 
 if [[ $branch == "master" ]]; then
-  echo "Deleting users that haven't logged in for 31 days"
+  echo "Deleting users that haven't logged in for ${max_inactive_days} days"
   delete_inactive_guests
   echo "Users deleted"
 else

@@ -29,7 +29,7 @@ delete_old_invites() {
 }
 
 if [[ $branch == "master" ]]; then
-  echo "Deleting users that haven't accepted their invite within a week"
+  echo "Deleting users that haven't accepted their invite within ${min_user_age_days} days"
   delete_old_invites
   echo "Guest users deleted"
 else
