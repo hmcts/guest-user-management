@@ -1,12 +1,14 @@
 #!/bin/bash
 set -e
 
+branch=$1
+
 min_user_age_days=7
 min_user_age_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${min_user_age_days} days ago")
 
 users_file=unaccepted_invites.txt
 
-. pipeline-scripts/delete-user.sh
+. pipeline-scripts/delete-user.sh $branch
 
 # Remove guest users in Azure AAD that haven't accepted their invite after 31 days
 delete_old_invites() {

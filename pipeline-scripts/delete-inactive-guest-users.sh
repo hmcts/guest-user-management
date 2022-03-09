@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+branch=$1
+
 max_inactive_days=31
 min_user_age_days=7
 
@@ -9,7 +11,7 @@ min_user_age_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${min_user_age_days} days ago")
 
 users_file=guests.json
 
-. pipeline-scripts/delete-user.sh
+. pipeline-scripts/delete-user.sh $branch
 
 # Delete users that haven't logged in within 31 days and are over a week old
 delete_inactive_guests() {

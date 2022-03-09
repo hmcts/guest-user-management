@@ -27,6 +27,7 @@ stages:
               scriptType: bash
               scriptLocation: scriptPath
               scriptPath: "$(System.DefaultWorkingDirectory)/pipeline-scripts/delete-old-guest-invites.sh"
+              arguments: $(Build.SourceBranchName)
           - task: AzureCLI@2
             displayName: DeleteInactiveGuestUsers
             inputs:
@@ -34,3 +35,4 @@ stages:
               scriptType: bash
               scriptLocation: scriptPath
               scriptPath: "$(System.DefaultWorkingDirectory)/pipeline-scripts/delete-inactive-guest-users.sh"
+              arguments: $(Build.SourceBranchName)
