@@ -30,6 +30,12 @@ delete_inactive_guests() {
   
 }
 
-echo "Deleting users that haven't logged in for 31 days"
-delete_inactive_guests
-echo "Users that haven't logged in for 31 days and are older than a week have been deleted."
+
+if [[ $branch == "master" ]]; then
+  echo "Deleting users that haven't logged in for 31 days"
+  delete_inactive_guests
+  echo "Users deleted"
+else
+  echo "Creating list of user that will be deleted when this script runs on the default branch"
+  delete_inactive_guests
+fi

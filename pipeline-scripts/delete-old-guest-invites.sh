@@ -28,6 +28,11 @@ delete_old_invites() {
   
 }
 
-echo "Deleting users that haven't accepted their invite within a week"
-delete_old_invites
-echo "Guest users with unaccepted invites older than a week have been deleted"
+if [[ $branch == "master" ]]; then
+  echo "Deleting users that haven't accepted their invite within a week"
+  delete_old_invites
+  echo "Guest users deleted"
+else
+  echo "Creating list of users that will be deleted when this script runs on the default branch"
+  delete_old_invites
+fi
