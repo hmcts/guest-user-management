@@ -3,7 +3,7 @@ set -e
 
 branch=$1
 
-min_user_age_days=14
+min_user_age_days=140
 min_user_age_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${min_user_age_days} days ago")
 
 users_file=unaccepted_invites.txt
