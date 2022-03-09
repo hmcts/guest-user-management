@@ -15,17 +15,20 @@ delete_old_invites() {
   # Create file with users that haven't accepted invite within a week
   az ad user list --query="[?userType=='Guest' && userState=='PendingAcceptance' && createdDateTime<'${min_user_age_date}' ].{DisplayName: displayName, ObjectId:objectId, Mail:mail}" -o json > ${users_file}
 
+  unaccepted_invite_count=$(jq -r .[].ObjectId ${users_file} | wc -l )
 
-  echo "Number of users to be deleted: $(jq -r .[].ObjectId ${users_file} | wc -l )"
+  if [[ ${unaccepted_invite_count} -gt 0 ]]; then
+    echo "Number of users to be deleted: ${unaccepted_invite_count}"
+    while IFS=" " read -r object_id mail display_name
+    do
 
-  while IFS=" " read -r object_id mail display_name
-  do
-
-    delete_user "$object_id" "$mail" "$display_name" &
-  
-  done <<< "$(jq -r '.[] | "\(.ObjectId) \(.Mail) \(.DisplayName)"' ${users_file})"
-  wait
-  
+      delete_user "$object_id" "$mail" "$display_name" &
+    
+    done <<< "$(jq -r '.[] | "\(.ObjectId) \(.Mail) \(.DisplayName)"' ${users_file})"
+    wait
+  else
+    echo "No unaccepted invites found, nothing to do."
+  fi
 }
 
 if [[ $branch == "master" ]]; then
