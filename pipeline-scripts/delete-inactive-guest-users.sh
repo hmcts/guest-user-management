@@ -19,15 +19,21 @@ delete_inactive_guests() {
   # Create file with list of guest users that have accepted their invite
   az rest --method GET --uri "https://graph.microsoft.com/beta/users?\$filter=externalUserState eq 'Accepted' and userType eq 'Guest' and createdDateTime le ${min_user_age_date}&\$select=id,displayName,signInActivity,createdDateTime,mail" > ${users_file}
   
-  echo "Number of users to be deleted: $(jq -r '.value[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | .id' ${users_file} | wc -l)"
+  inactive_users_count=$(jq -r '.value[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | .id' ${users_file} | wc -l)
   
-  while IFS=" " read -r object_id mail display_name
-  do
-    delete_user "$object_id" "$mail" "$display_name" &
+  
+  if [[ ${inactive_users_count} -gt 0 ]]; then
+    echo "Number of users to be deleted: ${inactive_users_count}"
+  
+    while IFS=" " read -r object_id mail display_name
+    do
+      delete_user "$object_id" "$mail" "$display_name" &
 
-  done <<< "$(jq -r '.value[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | "\(.id) \(.mail) \(.displayName)"' ${users_file})"
-  wait
-  
+    done <<< "$(jq -r '.value[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | "\(.id) \(.mail) \(.displayName)"' ${users_file})"
+    wait
+  else
+    echo "No inactive users found, nothing to do"
+  fi
 }
 
 

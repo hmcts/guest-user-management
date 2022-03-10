@@ -2,7 +2,7 @@ name: guest-user-management
 
 schedules:
   - cron: "0 6 * * *"
-    displayName: Daily build @ 16am
+    displayName: Daily build @ 6am
     branches:
       include:
         - main
