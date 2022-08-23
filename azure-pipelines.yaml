@@ -6,12 +6,12 @@ schedules:
     always: true
     branches:
       include:
-        - main
+        - master
 
 trigger:
   branches:
     include:
-      - main
+      - master
 
 variables:
   - name: timeoutInMinutes
