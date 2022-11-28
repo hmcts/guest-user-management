@@ -17,8 +17,27 @@ users_file=guests.json
 delete_inactive_guests() {
 
   # Create file with list of guest users that have accepted their invite
-  az rest --method GET --uri "https://graph.microsoft.com/beta/users?\$top=999&\$filter=externalUserState eq 'Accepted' and userType eq 'Guest' and createdDateTime le ${min_user_age_date}&\$select=id,displayName,signInActivity,createdDateTime,mail" > ${users_file}
+  NEXT_LINK=
+  counter=0
+
+  until [[ "${NEXT_LINK}" == "null" ]]; do
+    echo "Working on users-${counter}.json"
+
+    if [[ ${counter} == 0 ]]; then
+      az rest --method get --uri 'https://graph.microsoft.com/beta/users?$top=999&filter=accountEnabled+eq+true&select=accountEnabled,displayName,mail,otherMails,mailNickname' > users-${counter}.json
+    else
+      az rest --method get --uri "${NEXT_LINK}" > users-${counter}.json
+    fi
+
+    NEXT_LINK=$(jq -r '."@odata.nextLink"' users-${counter}.json)
+
+    counter=$(( counter + 1 ))
+
+  done
+
+  jq -s 'map(.value[])' users-?.json > ${users_file}
   
+
   inactive_users_count=$(jq -r '.value[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | .id' ${users_file} | wc -l)
   
   
