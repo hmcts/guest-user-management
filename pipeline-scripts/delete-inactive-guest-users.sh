@@ -50,7 +50,7 @@ delete_inactive_guests() {
     do
       delete_user "$object_id" "$mail" "$display_name" &
 
-    done <<< "$(jq -r '. | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | "\(.id) \(.mail) \(.displayName)"' ${users_file})"
+    done <<< "$(jq -r '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | "\(.id) \(.mail) \(.displayName)"' ${users_file})"
     wait
   else
     echo "No inactive users found, nothing to do"
