@@ -24,7 +24,7 @@ delete_inactive_guests() {
     echo "Working on users-${counter}.json"
 
     if [[ ${counter} == 0 ]]; then
-      az rest --method get --uri 'https://graph.microsoft.com/beta/users?$top=999&filter=accountEnabled+eq+true&select=accountEnabled,displayName,mail,otherMails,mailNickname' > users-${counter}.json
+      az rest --method get --uri 'https://graph.microsoft.com/beta/users?$top=999&filter=accountEnabled+eq+true&select=displayName,mail,otherMails,signInActivity' > users-${counter}.json
     else
       az rest --method get --uri "${NEXT_LINK}" > users-${counter}.json
     fi
@@ -48,7 +48,7 @@ delete_inactive_guests() {
     do
       delete_user "$object_id" "$mail" "$display_name" &
 
-    done <<< "$(jq -r '.value[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | "\(.id) \(.mail) \(.displayName)"' ${users_file})"
+    done <<< "$(jq -r '. | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | "\(.id) \(.mail) \(.displayName)"' ${users_file})"
     wait
   else
     echo "No inactive users found, nothing to do"
