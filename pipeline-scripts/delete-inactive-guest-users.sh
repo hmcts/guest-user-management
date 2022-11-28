@@ -9,6 +9,9 @@ min_user_age_days=7
 max_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${max_inactive_days} days ago")
 min_user_age_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${min_user_age_days} days ago")
 
+echo "max_inactive_date=${max_inactive_date}"
+echo "min_user_age_date=${min_user_age_date}"
+
 users_file=guests.json
 
 . pipeline-scripts/delete-user.sh $branch
@@ -21,7 +24,6 @@ delete_inactive_guests() {
   counter=0
 
   until [[ "${NEXT_LINK}" == "null" ]]; do
-    echo "Working on users-${counter}.json"
 
     if [[ ${counter} == 0 ]]; then
       az rest --method get --uri "https://graph.microsoft.com/beta/users?$top=999&filter=externalUserState eq 'Accepted' and userType eq 'Guest' and createdDateTime le '${min_user_age_date}'&\$select=id,displayName,signInActivity,createdDateTime,mail" > users-${counter}.json
