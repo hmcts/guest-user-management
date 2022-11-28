@@ -26,8 +26,7 @@ delete_inactive_guests() {
   until [[ "${NEXT_LINK}" == "null" ]]; do
 
     if [[ ${counter} == 0 ]]; then
-      az rest --method get --uri "https://graph.microsoft.com/beta/users?top=1&filter=externalUserState eq 'Accepted' and userType eq 'Guest' and createdDateTime le ${min_user_age_date}&select=id,displayName,signInActivity,createdDateTime,mail"
-#      az rest --method get --uri "'https://graph.microsoft.com/beta/users?$top=999&$filter=externalUserState eq 'Accepted' and userType eq 'Guest' and createdDateTime le ${min_user_age_date}&$select=id,displayName,signInActivity,createdDateTime,mail'" > users-${counter}.json
+      az rest --method get --uri "https://graph.microsoft.com/beta/users?top=999&filter=externalUserState eq 'Accepted' and userType eq 'Guest' and createdDateTime le ${min_user_age_date}&select=id,displayName,signInActivity,createdDateTime,mail" > users-${counter}.json
     else
       az rest --method get --uri "${NEXT_LINK}" > users-${counter}.json
     fi
