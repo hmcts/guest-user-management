@@ -6,8 +6,8 @@ branch=$1
 max_inactive_days=31
 min_user_age_days=7
 
-max_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${max_inactive_days} days ago")
-min_user_age_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${min_user_age_days} days ago")
+max_inactive_date=2022-11-10T02:11:50Z
+min_user_age_date=2022-11-10T02:11:50Z
 
 echo "max_inactive_date=${max_inactive_date}"
 echo "min_user_age_date=${min_user_age_date}"
