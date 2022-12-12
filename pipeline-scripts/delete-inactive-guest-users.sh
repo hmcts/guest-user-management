@@ -46,11 +46,12 @@ delete_inactive_guests() {
   if [[ ${inactive_users_count} -gt 0 ]]; then
     echo "Number of users to be deleted: ${inactive_users_count}"
   
-    while IFS=" " read -r object_id mail display_name
+    while IFS=" " read -r object_id mail display_name sign_in_activity
     do
+      echo "$sign_in_activity"
       delete_user "$object_id" "$mail" "$display_name" &
 
-    done <<< "$(jq -r '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | "\(.id) \(.mail) \(.displayName)"' ${users_file})"
+    done <<< "$(jq -r '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | "\(.id) \(.mail) \(.displayName) \(.signInActivity)"' ${users_file})"
     wait
   else
     echo "No inactive users found, nothing to do"
