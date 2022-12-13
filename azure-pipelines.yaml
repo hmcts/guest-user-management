@@ -46,7 +46,10 @@ stages:
               scriptLocation: scriptPath
               scriptPath: "$(System.DefaultWorkingDirectory)/pipeline-scripts/delete-inactive-guest-users.sh"
               arguments: $(Build.SourceBranchName)
-          - publish: users-*.json
-            artifact: users-json
-          - publish: guests.json
-            artifact: guests-json
+          - script: |
+              cp users-*.json $(Build.StagingDirectory)/
+              cp guests.json $(Build.StagingDirectory)/
+              cp unaccepted_invites.txt $(Build.StagingDirectory)/
+            displayName: Set output variable
+          - publish: $(Build.StagingDirectory)
+            artifact: guests-and-invites
