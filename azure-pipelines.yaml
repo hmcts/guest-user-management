@@ -17,7 +17,7 @@ variables:
   - name: timeoutInMinutes
     value: 60
   - name: agentPool
-    value: ubuntu-latest
+    value: ubuntu-20.04
   - name: service_connection
     value: GA
 
