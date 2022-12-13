@@ -50,6 +50,6 @@ stages:
               cp users-*.json $(Build.StagingDirectory)/
               cp guests.json $(Build.StagingDirectory)/
               cp unaccepted_invites.txt $(Build.StagingDirectory)/
-            displayName: Set output variable
+            displayName: StageJSONFiles
           - publish: $(Build.StagingDirectory)
             artifact: guests-and-invites
