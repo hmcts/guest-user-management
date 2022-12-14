@@ -32,9 +32,10 @@ delete_old_invites() {
 }
 
 if [[ $branch == "master" ]]; then
-  echo "Deleting users that haven't accepted their invite within ${min_user_age_days} days"
-  delete_old_invites
-  echo "Guest users deleted"
+  echo "Not deleting old guest invites temporarily - see DTSPO-11798"
+  #echo "Deleting users that haven't accepted their invite within ${min_user_age_days} days"
+  #delete_old_invites
+  #echo "Guest users deleted"
 else
   echo "Creating list of users that will be deleted when this script runs on the default branch"
   delete_old_invites
