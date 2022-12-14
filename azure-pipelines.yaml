@@ -9,6 +9,7 @@ schedules:
         - master
 
 trigger:
+  pr:
   branches:
     include:
       - master
