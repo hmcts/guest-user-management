@@ -8,8 +8,9 @@ schedules:
       include:
         - master
 
+pr:
+
 trigger:
-  pr:
   branches:
     include:
       - master
