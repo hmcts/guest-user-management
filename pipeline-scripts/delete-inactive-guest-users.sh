@@ -59,9 +59,10 @@ delete_inactive_guests() {
 
 
 if [[ $branch == "master" ]]; then
-  echo "Deleting users that haven't logged in for ${max_inactive_days} days"
-  delete_inactive_guests
-  echo "Users deleted"
+    echo "Not deleting users temporarily see DTSPO-11798"
+#   echo "Deleting users that haven't logged in for ${max_inactive_days} days"
+#   delete_inactive_guests
+#   echo "Users deleted"
 else
   echo "Creating list of user that will be deleted when this script runs on the default branch"
   delete_inactive_guests
