@@ -1,12 +1,12 @@
 name: guest-user-management
 
-schedules:
-  - cron: "0 2 * * *"
-    displayName: Daily build @ 2am
-    always: true
-    branches:
-      include:
-        - master
+# schedules:
+#   - cron: "0 2 * * *"
+#     displayName: Daily build @ 2am
+#     always: true
+#     branches:
+#       include:
+#         - master
 
 trigger:
   branches:
