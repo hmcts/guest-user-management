@@ -7,10 +7,10 @@ branch=$1
 warn_inactive_days=7
 
 # Number of days a user can be inactive before being deleted
-delete_inactive_days=31
+delete_inactive_days=7
 
 min_user_age_days=7
-max_inactive_days=$((${warn_inactive_days} + ${delete_inactive_days}))
+max_inactive_days=$(("${warn_inactive_days}" + "${delete_inactive_days}"))
 max_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${max_inactive_days} days ago")
 delete_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${delete_inactive_days} days ago")
 
