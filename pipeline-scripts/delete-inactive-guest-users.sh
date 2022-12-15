@@ -17,7 +17,7 @@ delete_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${delete_inactive_days} days
 min_user_age_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${min_user_age_days} days ago")
 
 echo "max_inactive_days=${max_inactive_days}"
-echo "max_inactive_date=${max_inactive_date}"
+echo "delete_inactive_date=${delete_inactive_date}"
 echo "min_user_age_date=${min_user_age_date}"
 
 users_file=guests.json
