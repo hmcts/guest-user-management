@@ -67,9 +67,16 @@ delete_inactive_guests() {
         else
           printf -v full_name "%s %s" "$given_name" "$surname"
         fi
+        if [[ $last_Sign_in_date_time != "" ]]; then
+          days_until_deletion=$(( ( $(date +%s) - $(date +%s -d "$last_Sign_in_date_time") ) / 86400 + 1 ))
+          echo "account $mail will be deleted in $days_until_deletion"
+        elif [[ $last_Sign_in_date_time != "" ]]; then
+          days_until_deletion=$(( ( $(date +%s) - $(date +%s -d "last_non_interactive_sign_in_date_time") ) / 86400 + 1 ))
+          echo "account $mail will be deleted in $days_until_deletion"
+        else
+          echo "Both sign in times are null"
+        fi
 
-        days_until_deletion=$(( ( $(date +%s) - $(date +%s -d "$last_Sign_in_date_time") ) / 86400 + 1 ))
-        echo "account $mail will be deleted in $days_until_deletion"
 
       fi
 
