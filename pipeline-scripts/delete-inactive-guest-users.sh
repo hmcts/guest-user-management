@@ -32,7 +32,7 @@ delete_inactive_guests() {
   until [[ "${NEXT_LINK}" == "null" ]]; do
 
     if [[ ${counter} == 0 ]]; then
-      az rest --method get --uri "https://graph.microsoft.com/beta/users?top=999&filter=externalUserState eq 'Accepted' and createdDateTime le ${min_user_age_date}&select=id,signInActivity,createdDateTime,mail,givenName,surname,displayName" > users-${counter}.json
+      az rest --method get --uri "https://graph.microsoft.com/beta/users?top=100&filter=externalUserState eq 'Accepted' and createdDateTime le ${min_user_age_date}&select=id,signInActivity,createdDateTime,mail,givenName,surname,displayName" > users-${counter}.json
     else
       az rest --method get --uri "${NEXT_LINK}" > users-${counter}.json
     fi
@@ -46,7 +46,7 @@ delete_inactive_guests() {
   jq -s 'map(.value[])' users-?.json > ${users_file}
   
 
-  inactive_users_count=$(jq -r '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | .id' ${users_file} | wc -l)
+  inactive_users_count=$(jq -r '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | .id' ${users_file} | wc -l )
   
   
   if [[ ${inactive_users_count} -gt 0 ]]; then
