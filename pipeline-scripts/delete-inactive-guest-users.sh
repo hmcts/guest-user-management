@@ -75,11 +75,14 @@ delete_inactive_guests() {
 
           if [[ "$days_until_deletion" -lt ${warn_inactive_days} ]]; then
             echo "account $mail will be deleted in $days_until_deletion days"
+            echo "last_sign_in=${last_sign_in_date_time}, last_non_interactive_sign_in=${last_non_interactive_sign_in_date_time}, delete_date=${delete_inactive_date}"
           fi
         elif [[ $last_non_interactive_sign_in_date_time != "null" ]] && [[ $(date +%s -d "$last_non_interactive_sign_in_date_time") > $(date +%s -d "$last_sign_in_date_time") ]]; then
           days_until_deletion=$(( "$delete_inactive_days" - (( $(date +%s) - $(date +%s -d "$last_non_interactive_sign_in_date_time") ) / 86400 + 1) ))
           if [[ $days_until_deletion -lt ${warn_inactive_days} ]]; then
             echo "account $mail will be deleted in $days_until_deletion days"
+            echo "last_sign_in=${last_sign_in_date_time}, last_non_interactive_sign_in=${last_non_interactive_sign_in_date_time}, delete_date=${delete_inactive_date}"
+
           fi
         else
           echo "Both sign in times are null"
