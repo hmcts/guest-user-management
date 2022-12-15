@@ -54,11 +54,11 @@ delete_inactive_guests() {
   if [[ ${inactive_users_count} -gt 0 ]]; then
     echo "Number of users to be deleted: ${inactive_users_count}"
 
-    while IFS=" " read -r object_id mail last_Sign_in_date_time last_non_interactive_sign_in_date_time given_name surname display_name
+    while IFS=" " read -r object_id mail last_sign_in_date_time last_non_interactive_sign_in_date_time given_name surname display_name
     do
 #      echo "working on $mail"
-      echo "[[ ${delete_inactive_date} > ${last_Sign_in_date_time} ]] && [[ ${delete_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]"
-      if [[ ${delete_inactive_date} > ${last_Sign_in_date_time} ]] && [[ ${delete_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]; then
+      echo "[[ ${delete_inactive_date} > ${last_sign_in_date_time} ]] && [[ ${delete_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]"
+      if [[ ${delete_inactive_date} > ${last_sign_in_date_time} ]] && [[ ${delete_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]; then
         echo "Delete user $mail"
 #        delete_user "$object_id" "$mail" "$display_name" "$last_Sign_in_date_time" "$last_non_interactive_sign_in_date_time" "given_name" "$surname"
       else
@@ -71,16 +71,16 @@ delete_inactive_guests() {
         fi
 #        echo "last_non_interactive_sign_in_date_time=$last_Sign_in_date_time"
 #        echo "last_non_interactive_sign_in_date_time=$last_non_interactive_sign_in_date_time"
-        if [[ $last_Sign_in_date_time != "null" ]]; then
-          days_until_deletion=$(( ( $(date +%s) - $(date +%s -d "$last_Sign_in_date_time") ) / 86400 + 1 ))
+        if [[ $last_sign_in_date_time != "null" ]]; then
+          days_until_deletion=$(( ( $(date +%s) - $(date +%s -d "$last_sign_in_date_time") ) / 86400 + 1 ))
           today=$(date +%s)
-          lastsignin=$(date +%s -d "$last_Sign_in_date_time")
+          lastsignin=$(date +%s -d "$last_sign_in_date_time")
           echo $(( ($today - $lastsignin) / 86400 ))
           if [[ $days_until_deletion -lt 8 ]]; then
             echo "account $mail will be deleted in $days_until_deletion days"
           fi
         fi
-        if [[ $last_Sign_in_date_time != "null" ]]; then
+        if [[ $last_sign_in_date_time != "null" ]]; then
           days_until_deletion=$(( ( $(date +%s) - $(date +%s -d "$last_non_interactive_sign_in_date_time") ) / 86400 + 1 ))
           if [[ $days_until_deletion -lt 8 ]]; then
 
