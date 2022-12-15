@@ -75,7 +75,7 @@ delete_inactive_guests() {
           days_until_deletion=$(( ( $(date +%s) - $(date +%s -d "$last_Sign_in_date_time") ) / 86400 + 1 ))
           today=$(date +%s)
           lastsignin=$(date +%s -d "$last_Sign_in_date_time")
-          echo $(( $today - $lastsignin ))
+          echo $(( ($today - $lastsignin) / 86400 ))
           if [[ $days_until_deletion -lt 8 ]]; then
             echo "account $mail will be deleted in $days_until_deletion days"
           fi
