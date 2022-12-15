@@ -104,5 +104,5 @@ if [[ $branch == "master" ]]; then
 #   echo "Users deleted"
 else
   echo "Creating list of user that will be deleted when this script runs on the default branch"
-  delete_inactive_guests
+  delete_inactive_guests | sort
 fi
