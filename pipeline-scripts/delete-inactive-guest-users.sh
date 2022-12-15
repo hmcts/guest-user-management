@@ -15,6 +15,7 @@ max_inactive_days=$(( ${warn_inactive_days} + ${delete_inactive_days}  ))
 max_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${max_inactive_days} days ago")
 min_user_age_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${min_user_age_days} days ago")
 
+echo "max_inactive_days=${max_inactive_days}"
 echo "max_inactive_date=${max_inactive_date}"
 echo "min_user_age_date=${min_user_age_date}"
 
