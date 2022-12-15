@@ -52,7 +52,15 @@ delete_inactive_guests() {
   jq -r '.[].id' ${users_file} | wc -l
   
   if [[ ${inactive_users_count} -gt 0 ]]; then
-    echo "Number of users to be deleted: ${inactive_users_count}"
+    # Use display name if given and surname aren't set
+    if [[ ${given_name} == "null" ]] || [[ ${surname} == "null" ]]; then
+      given_name=$(echo "$display_name" | cut -d "," -f2 )
+      surname=$(echo "$display_name" | cut -d "," -f1)
+      # Remove the leading whitespace from given name
+      printf -v full_name "%s %s" "${given_name## }" "$surname"
+    else
+      printf -v full_name "%s %s" "$given_name" "$surname"
+    fi
 
     while IFS=" " read -r object_id mail last_sign_in_date_time last_non_interactive_sign_in_date_time given_name surname display_name
     do
@@ -60,14 +68,6 @@ delete_inactive_guests() {
          echo "Deleted user $full_name, last_sign_in=${last_sign_in_date_time}, last_non_interactive_sign_in=${last_non_interactive_sign_in_date_time}, max_inactive_date=${delete_inactive_date}"
 #        delete_user "$object_id" "$mail" "$display_name" "$last_Sign_in_date_time" "$last_non_interactive_sign_in_date_time" "given_name" "$surname"
       else
-        if [[ ${given_name} == "null" ]] || [[ ${surname} == "null" ]]; then
-          given_name=$(echo "$display_name" | cut -d "," -f2 )
-          surname=$(echo "$display_name" | cut -d "," -f1)
-          # Remove the leading whitespace from given name
-          printf -v full_name "%s %s" "${given_name## }" "$surname"
-        else
-          printf -v full_name "%s %s" "$given_name" "$surname"
-        fi
 
         if [[ $last_sign_in_date_time != "null" ]] && [[ $(date +%s -d "$last_sign_in_date_time") > $(date +%s -d "$last_non_interactive_sign_in_date_time") ]]; then
           days_until_deletion=$(( "$delete_inactive_days" - (( $(date +%s) - $(date +%s -d "$last_sign_in_date_time") ) / 86400 + 1) ))
