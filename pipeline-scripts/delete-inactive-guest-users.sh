@@ -48,7 +48,7 @@ delete_inactive_guests() {
   
 
   inactive_users_count=$(jq -r '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | .id' ${users_file} | wc -l )
-  jq -r '.[].id' | wc -l
+  jq -r '.[].id' ${users_file} | wc -l
   
   if [[ ${inactive_users_count} -gt 0 ]]; then
     echo "Number of users to be deleted: ${inactive_users_count}"
