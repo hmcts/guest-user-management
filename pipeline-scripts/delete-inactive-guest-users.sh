@@ -4,10 +4,10 @@ set -e
 branch=$1
 
 # Number of days before deletion date that a user will start getting notified about being deleted
-warn_inactive_days=1
+warn_inactive_days=2
 
 # Number of days a user can be inactive before being deleted
-delete_inactive_days=10
+delete_inactive_days=5
 
 min_user_age_days=7
 max_inactive_days=$((${warn_inactive_days} + ${delete_inactive_days}))
@@ -57,6 +57,7 @@ delete_inactive_guests() {
     while IFS=" " read -r object_id mail last_Sign_in_date_time last_non_interactive_sign_in_date_time given_name surname display_name
     do
       echo "working on $mail"
+      echo "[[ ${delete_inactive_date} > ${last_Sign_in_date_time} ]] && [[ ${delete_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]"
       if [[ ${delete_inactive_date} > ${last_Sign_in_date_time} ]] && [[ ${delete_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]; then
         echo "Delete user $mail"
 #        delete_user "$object_id" "$mail" "$display_name" "$last_Sign_in_date_time" "$last_non_interactive_sign_in_date_time" "given_name" "$surname"
