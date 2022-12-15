@@ -56,8 +56,6 @@ delete_inactive_guests() {
 
     while IFS=" " read -r object_id mail last_sign_in_date_time last_non_interactive_sign_in_date_time given_name surname display_name
     do
-#      echo "working on $mail"
-      echo "[[ ${delete_inactive_date} > ${last_sign_in_date_time} ]] && [[ ${delete_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]"
       if [[ ${delete_inactive_date} > ${last_sign_in_date_time} ]] && [[ ${delete_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]; then
         echo "Delete user $mail"
 #        delete_user "$object_id" "$mail" "$display_name" "$last_Sign_in_date_time" "$last_non_interactive_sign_in_date_time" "given_name" "$surname"
@@ -69,8 +67,7 @@ delete_inactive_guests() {
         else
           printf -v full_name "%s %s" "$given_name" "$surname"
         fi
-#        echo "last_non_interactive_sign_in_date_time=$last_Sign_in_date_time"
-#        echo "last_non_interactive_sign_in_date_time=$last_non_interactive_sign_in_date_time"
+
         if [[ $last_sign_in_date_time != "null" ]] && [[ $(date +%s -d "$last_sign_in_date_time") > $(date +%s -d "$last_non_interactive_sign_in_date_time") ]]; then
           days_until_deletion=$(( "$delete_inactive_days" - (( $(date +%s) - $(date +%s -d "$last_sign_in_date_time") ) / 86400 + 1) ))
           today=$(date +%s)
