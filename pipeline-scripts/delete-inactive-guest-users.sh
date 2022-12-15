@@ -4,10 +4,10 @@ set -e
 branch=$1
 
 # Number of days before deletion date that a user will start getting notified about being deleted
-warn_inactive_days=2
+warn_inactive_days=7
 
 # Number of days a user can be inactive before being deleted
-delete_inactive_days=5
+delete_inactive_days=31
 
 min_user_age_days=7
 max_inactive_days=$((${warn_inactive_days} + ${delete_inactive_days}))
