@@ -57,7 +57,7 @@ delete_inactive_guests() {
     while IFS=" " read -r object_id mail last_Sign_in_date_time last_non_interactive_sign_in_date_time given_name surname display_name
     do
 #      echo "working on $mail"
-#      echo "[[ ${delete_inactive_date} > ${last_Sign_in_date_time} ]] && [[ ${delete_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]"
+      echo "[[ ${delete_inactive_date} > ${last_Sign_in_date_time} ]] && [[ ${delete_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]"
       if [[ ${delete_inactive_date} > ${last_Sign_in_date_time} ]] && [[ ${delete_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]; then
         echo "Delete user $mail"
 #        delete_user "$object_id" "$mail" "$display_name" "$last_Sign_in_date_time" "$last_non_interactive_sign_in_date_time" "given_name" "$surname"
@@ -80,6 +80,7 @@ delete_inactive_guests() {
         if [[ $last_Sign_in_date_time != "null" ]]; then
           days_until_deletion=$(( ( $(date +%s) - $(date +%s -d "$last_non_interactive_sign_in_date_time") ) / 86400 + 1 ))
           if [[ $days_until_deletion -lt 8 ]]; then
+
             echo "account $mail will be deleted in $days_until_deletion"
           fi
         else
