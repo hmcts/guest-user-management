@@ -71,26 +71,22 @@ delete_inactive_guests() {
         fi
 #        echo "last_non_interactive_sign_in_date_time=$last_Sign_in_date_time"
 #        echo "last_non_interactive_sign_in_date_time=$last_non_interactive_sign_in_date_time"
-        if [[ $last_sign_in_date_time != "null" ]]; then
+        if [[ $last_sign_in_date_time != "null" ]] && [[ $last_sign_in_date_time -gt $last_non_interactive_sign_in_date_time ]]; then
           days_until_deletion=$(( "$delete_inactive_days" - (( $(date +%s) - $(date +%s -d "$last_sign_in_date_time") ) / 86400 + 1) ))
           today=$(date +%s)
           lastsignin=$(date +%s -d "$last_sign_in_date_time")
-#          echo $(( ($today - $lastsignin) / 86400 ))
+
           if [[ "$days_until_deletion" -lt 8 ]]; then
             echo "account $mail will be deleted in $days_until_deletion days"
           fi
-        fi
-        if [[ $last_sign_in_date_time != "null" ]]; then
-          days_until_deletion=$(( ( $(date +%s) - $(date +%s -d "$last_non_interactive_sign_in_date_time") ) / 86400 + 1 ))
+        elif [[ $last_non_interactive_sign_in_date_time != "null" ]] && [[ $last_non_interactive_sign_in_date_time -gt $last_sign_in_date_time ]]; then
+          days_until_deletion=$(( "$delete_inactive_days" - (( $(date +%s) - $(date +%s -d "$last_non_interactive_sign_in_date_time") ) / 86400 + 1) ))
           if [[ $days_until_deletion -lt 8 ]]; then
-
-            echo "account $mail will be deleted in $days_until_deletion"
+            echo "account $mail will be deleted in $days_until_deletion days"
           fi
         else
           echo "Both sign in times are null"
         fi
-
-
       fi
 
 #      node pipeline-scripts/sendMail.js "${mail}" "${full_name}"
