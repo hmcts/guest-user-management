@@ -10,7 +10,7 @@ warn_inactive_days=7
 delete_inactive_days=31
 
 min_user_age_days=7
-max_inactive_days=$(("${warn_inactive_days}" - "${delete_inactive_days}"))
+max_inactive_days=$(("${delete_inactive_days}" - "${warn_inactive_days}" ))
 max_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${max_inactive_days} days ago")
 delete_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${delete_inactive_days} days ago")
 
