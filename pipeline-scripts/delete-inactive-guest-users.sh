@@ -73,8 +73,9 @@ delete_inactive_guests() {
 #        echo "last_non_interactive_sign_in_date_time=$last_non_interactive_sign_in_date_time"
         if [[ $last_Sign_in_date_time != "null" ]]; then
           days_until_deletion=$(( ( $(date +%s) - $(date +%s -d "$last_Sign_in_date_time") ) / 86400 + 1 ))
-          date +%s
-          date +%s -d "$last_Sign_in_date_time"
+          today=$(date +%s)
+          lastsignin=$(date +%s -d "$last_Sign_in_date_time")
+          echo $(( $today - $lastsignin ))
           if [[ $days_until_deletion -lt 8 ]]; then
             echo "account $mail will be deleted in $days_until_deletion days"
           fi
