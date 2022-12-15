@@ -10,9 +10,10 @@ warn_inactive_days=1
 delete_inactive_days=10
 
 min_user_age_days=7
-max_inactive_days=$(( ${warn_inactive_days} + ${delete_inactive_days}  ))
-
+max_inactive_days=$((${warn_inactive_days} + ${delete_inactive_days}))
 max_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${max_inactive_days} days ago")
+delete_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${delete_inactive_days} days ago")
+
 min_user_age_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${min_user_age_days} days ago")
 
 echo "max_inactive_days=${max_inactive_days}"
@@ -56,7 +57,7 @@ delete_inactive_guests() {
     while IFS=" " read -r object_id mail last_Sign_in_date_time last_non_interactive_sign_in_date_time given_name surname display_name
     do
       echo "working on $mail"
-      if [[ ${max_inactive_date} > ${last_Sign_in_date_time} ]] && [[ ${max_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]; then
+      if [[ ${delete_inactive_date} > ${last_Sign_in_date_time} ]] && [[ ${delete_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]; then
         echo "Delete user $mail"
 #        delete_user "$object_id" "$mail" "$display_name" "$last_Sign_in_date_time" "$last_non_interactive_sign_in_date_time" "given_name" "$surname"
       else
