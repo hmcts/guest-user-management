@@ -15,13 +15,12 @@ let personalisation = {
         'email': emailAddress
 }
 
-
-console.log(name, azurePortalURL, emailAddress)
 notifyClient
     .sendEmail(templateId, "matt.slater@justice.gov.uk", {
         personalisation: personalisation,
         reference: null,
         emailReplyToId: "7bb0ab72-86ca-4f88-88f9-e9293dd37cb2"
     })
-    .then(response => console.log(response))
     .catch(err => console.error(err))
+
+console.log("Deletion notification for " + name + " sent to " + emailAddress );
