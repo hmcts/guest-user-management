@@ -24,6 +24,33 @@ users_file=guests.json
 
 . pipeline-scripts/delete-user.sh "${branch}"
 
+
+most_recent_login() {
+  # Take both login times check which one is the most recent and work with that
+  if [[ $1 == "null" ]]; then
+    most_recent_login_date=$2
+  elif [[ $2 == "null" ]]; then
+    most_recent_login_date=$1
+  else
+    most_recent_login_date=$([[ "$1" > "$2" ]] && echo "$1" || echo "$2")
+  fi
+}
+
+set_full_name() {
+    display_name=$1
+    given_name=$2
+    surname=$3
+    # Use display name if given and surname aren't set
+    if [[ ${given_name} == "null" ]] || [[ ${surname} == "null" ]]; then
+      given_name=$(echo "$display_name" | cut -d "," -f2 )
+      surname=$(echo "$display_name" | cut -d "," -f1)
+      # Remove the leading whitespace from given name
+      printf -v full_name "%s %s" "${given_name## }" "$surname"
+    else
+      printf -v full_name "%s %s" "$given_name" "$surname"
+    fi
+}
+
 # Delete users that haven't logged in within set number of days and are over a week old
 delete_inactive_guests() {
 
@@ -55,37 +82,30 @@ delete_inactive_guests() {
     while IFS=" " read -r object_id mail last_sign_in_date_time last_non_interactive_sign_in_date_time given_name surname display_name
     do
 
-      # Use display name if given and surname aren't set
-      if [[ ${given_name} == "null" ]] || [[ ${surname} == "null" ]]; then
-        given_name=$(echo "$display_name" | cut -d "," -f2 )
-        surname=$(echo "$display_name" | cut -d "," -f1)
-        # Remove the leading whitespace from given name
-        printf -v full_name "%s %s" "${given_name## }" "$surname"
-      else
-        printf -v full_name "%s %s" "$given_name" "$surname"
+      # Set full name of user given_name adn surname will be used if neither are null
+      set_full_name "${display_name}" "${given_name}" "${surname}"
+
+      # Check email isn't null
+      if [[ "${mail}" == "null" ]]; then
+        printf "No email address found for user %s" "${full_name}"
       fi
 
-      if [[ ${delete_inactive_date} > ${last_sign_in_date_time} ]] && [[ ${delete_inactive_date} > ${last_non_interactive_sign_in_date_time} ]]; then
+      if [[ "${last_sign_in_date_time}" != "null" ]] && [[ "${last_non_interactive_sign_in_date_time}" != "null" ]]; then
+        # We will be looking to improve the script so it reads a user before deleting to check sign in activity again.
+        echo "Both sign-in times are null for $full_name, please check user."
+      else
+        most_recent_login "${last_sign_in_date_time}" "${last_non_interactive_sign_in_date_time}"
+      fi
+
+      days_until_deletion=$(( "${delete_inactive_days}" - (( $(date +%s) - $(date +%s -d "${most_recent_login_date}")) / 86400 + 1) ))
+
+      if [[ ${delete_inactive_date} > "${most_recent_login}" ]]; then
          echo "Deleted user $full_name, last_sign_in=${last_sign_in_date_time}, last_non_interactive_sign_in=${last_non_interactive_sign_in_date_time}, max_inactive_date=${delete_inactive_date}"
 #        delete_user "$object_id" "$mail" "$display_name" "$last_Sign_in_date_time" "$last_non_interactive_sign_in_date_time" "given_name" "$surname"
-      else
 
-        if [[ $last_sign_in_date_time != "null" ]] && [[ $(date +%s -d "$last_sign_in_date_time") > $(date +%s -d "$last_non_interactive_sign_in_date_time") ]]; then
-          days_until_deletion=$(( "$delete_inactive_days" - (( $(date +%s) - $(date +%s -d "$last_sign_in_date_time") ) / 86400 + 1) ))
-
-          if [[ "$days_until_deletion" -lt ${warn_inactive_days} ]]; then
-            echo "User $full_name will be deleted in $days_until_deletion days, last_sign_in=${last_sign_in_date_time}, last_non_interactive_sign_in=${last_non_interactive_sign_in_date_time}, max_inactive_date=${delete_inactive_date}"
-            node pipeline-scripts/sendMail.js "${mail}" "${full_name}" "${API_KEY}"
-          fi
-        elif [[ $last_non_interactive_sign_in_date_time != "null" ]] && [[ $(date +%s -d "$last_non_interactive_sign_in_date_time") > $(date +%s -d "$last_sign_in_date_time") ]]; then
-          days_until_deletion=$(( "$delete_inactive_days" - (( $(date +%s) - $(date +%s -d "$last_non_interactive_sign_in_date_time") ) / 86400 + 1) ))
-          if [[ $days_until_deletion -lt ${warn_inactive_days} ]]; then
-            echo "User $full_name will be deleted in $days_until_deletion days, last_sign_in=${last_sign_in_date_time}, last_non_interactive_sign_in=${last_non_interactive_sign_in_date_time}, delete_date=${delete_inactive_date}"
-            node pipeline-scripts/sendMail.js "${mail}" "${full_name}" "${API_KEY}"
-          fi
-        else
-          echo "Error: Both sign in times are null for user $full_name"
-        fi
+      elif [[ "$days_until_deletion" -lt ${warn_inactive_days} ]]; then
+          echo "User $full_name will be deleted in $days_until_deletion days, last_sign_in=${last_sign_in_date_time}, last_non_interactive_sign_in=${last_non_interactive_sign_in_date_time}, max_inactive_date=${delete_inactive_date}"
+          node pipeline-scripts/sendMail.js "${mail}" "${full_name}" "${API_KEY}"
       fi
 
     done <<< "$(jq -r '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | "\(.id) \(.mail) \(.signInActivity.lastSignInDateTime) \(.signInActivity.lastNonInteractiveSignInDateTime) \(.givenName) \(.surname) \(.displayName)"' ${users_file})"

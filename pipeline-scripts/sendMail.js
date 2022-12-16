@@ -23,4 +23,4 @@ notifyClient
     })
     .catch(err => console.error(err))
 
-console.log("Deletion notification for " + name + " sent to " + emailAddress );
+console.log("Deletion warning for " + name + " sent to " + emailAddress );
