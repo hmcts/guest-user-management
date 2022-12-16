@@ -39,8 +39,8 @@ stages:
             displayName: Retrieve keyvault secret for API Key
             inputs:
               ConnectedServiceName: ${{ variables.service_connection }}
-              keyVaultName: ${{ parameters.keyvaultName }}
-              secretsFilter: ${{ parameters.keyvaultSecret }}
+              keyVaultName: ${{ variables.apiKeyVault }}
+              secretsFilter: ${{ variables.apiKeyName }}
               runAsPreJob: false
 
           - task: AzureCLI@2
