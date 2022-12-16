@@ -90,7 +90,7 @@ delete_inactive_guests() {
         printf "No email address found for user %s" "${full_name}"
       fi
 
-      if [[ "${last_sign_in_date_time}" != "null" ]] && [[ "${last_non_interactive_sign_in_date_time}" != "null" ]]; then
+      if [[ "${last_sign_in_date_time}" == "null" ]] && [[ "${last_non_interactive_sign_in_date_time}" == "null" ]]; then
         # We will be looking to improve the script so it reads a user before deleting to check sign in activity again.
         echo "Both sign-in times are null for $full_name, please check user."
       else
