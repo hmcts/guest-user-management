@@ -43,6 +43,11 @@ stages:
               secretsFilter: ${{ variables.apiKeyName }}
               runAsPreJob: false
 
+          - script: |
+              npm install --production
+            displayName: "npm install"
+            workingDirectory: "pipeline-scripts"
+
           - task: AzureCLI@2
             displayName: DeleteUnacceptedInvites
             inputs:
