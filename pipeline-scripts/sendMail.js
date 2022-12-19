@@ -26,5 +26,3 @@ notifyClient
         emailReplyToId: "7bb0ab72-86ca-4f88-88f9-e9293dd37cb2"
     })
     .catch(err => console.error(err))
-
-console.log("Deletion warning for " + name + " sent to " + emailAddress );
