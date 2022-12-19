@@ -149,7 +149,7 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
     printf "Deleting user %s as the last login recorded was %s and that is more than %s days ago\n" "${formatted_name}" "${most_recent_login_date}"  "${delete_inactive_days}"
   else
     printf "Sending warning notification %s: last_login=%s, days_until_deletion=%s, delete_inactive_date=%s\n" "${formatted_name}" "${most_recent_login_date}" "${days_until_deletion}" "${delete_inactive_date}"
-    node sendMail.js "${mail}" "${formatted_name}" "${API_KEY}"
+    node sendMail.js "${mail}" "${formatted_name}" "${API_KEY}" "${days_until_deletion}" "${delete_inactive_days}"
   fi
 
 done

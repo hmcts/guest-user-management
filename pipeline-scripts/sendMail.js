@@ -2,6 +2,8 @@ const commandArgs = process.argv.slice(2)
 const emailAddress = commandArgs[0]
 const name = commandArgs[1]
 const apiKey = commandArgs[2]
+const days = commandArgs[3]
+const maxInactiveDays = commandArgs[4]
 
 const NotifyClient = require('notifications-node-client').NotifyClient;
 const notifyClient = new NotifyClient(apiKey);
@@ -12,7 +14,9 @@ const azurePortalURL = "https://portal.azure.com/hmcts.net"
 let personalisation = {
         'name': name,
         'url': azurePortalURL,
-        'email': emailAddress
+        'email': emailAddress,
+        'days': days,
+        'maxInactiveDays': maxInactiveDays,
 }
 
 notifyClient
