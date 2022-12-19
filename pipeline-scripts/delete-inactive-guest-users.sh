@@ -133,7 +133,7 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
 
   most_recent_login_date=$(most_recent_login "${last_sign_in_date_time}" "${last_non_interactive_sign_in_date_time}")
 
-  if [[ "${most_recent_login_date}" == "null" ]]; then
+  if [[ "${most_recent_login_date}" == "null" ]] || [[ "${most_recent_login_date}" == "" ]]; then
     # Get user directly and check for most recent sign in
     most_recent_login_date=$(get_user_sign_in_activity "${object_id}")
 
