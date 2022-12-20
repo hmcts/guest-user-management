@@ -5,6 +5,7 @@ cd "$(dirname "$0")"
 
 branch=$1
 API_KEY=$2
+
 # Number of days before deletion date that a user will start getting notified about being deleted
 warn_inactive_days=7
 
@@ -119,12 +120,6 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
   surname=$(jq -r ".surname" <<< "${user}")
   mail=$(jq -r ".mail" <<< "${user}")
 
-  # Check email isn't null
-  if [[ "${mail}" == "null" ]]; then
-    printf "No email address found for user %s\n" "${formatted_name}"
-    continue
-  fi
-
   # Set full name of user given_name adn surname will be used if neither are null
   formatted_name=$(set_full_name "${display_name}" "${given_name}" "${surname}")
 
@@ -146,10 +141,31 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
   days_until_deletion=$(( "${delete_inactive_days}" - (( $(date +%s) - $(date +%s -d "${most_recent_login_date}")) / 86400 + 1) ))
 
   if [[ "${days_until_deletion}" -lt "0"  ]]; then
-    printf "Deleting user %s as the last login recorded was %s and that is more than %s days ago\n" "${formatted_name}" "${most_recent_login_date}"  "${delete_inactive_days}"
-  else
-    printf "Sending warning notification %s: last_login=%s, days_until_deletion=%s, delete_inactive_date=%s\n" "${formatted_name}" "${most_recent_login_date}" "${days_until_deletion}" "${delete_inactive_date}"
-    node sendMail.js "${mail}" "${formatted_name}" "${API_KEY}" "${days_until_deletion}" "${delete_inactive_days}"
-  fi
 
-done
+    # Check email isn't null
+    if [[ "${mail}" == "null" ]]; then
+      printf "No email address found for user %s\n" "${formatted_name}"
+      continue
+    fi
+
+    if [[ "${branch}" =~ ^(main|master)$ ]]; then
+      printf "Deleting user %s as the last login recorded was %s and that is more than %s days ago\n" "${formatted_name}" "${most_recent_login_date}"  "${delete_inactive_days}"
+
+      # Delete user
+#      az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${1}"
+    else
+      printf "Plan: User %s will be deleted as the last login recorded was %s and that is more than %s days ago\n" "${formatted_name}" "${most_recent_login_date}"  "${delete_inactive_days}"
+    fi
+  else
+
+    if [[ "${branch}" =~ ^(main|master)$ ]]; then
+      printf "Sending warning notification %s: last_login=%s, days_until_deletion=%s, delete_inactive_date=%s\n" "${formatted_name}" "${most_recent_login_date}" "${days_until_deletion}" "${delete_inactive_date}"
+
+      # Send warning notification
+      node sendMail.js "${mail}" "${formatted_name}" "${API_KEY}" "${days_until_deletion}" "${delete_inactive_days}"
+    else
+      printf "Plan: Warning notification will be sent when this pipeline runs on master %s: last_login=%s, days_until_deletion=%s, delete_inactive_date=%s\n" "${formatted_name}" "${most_recent_login_date}" "${days_until_deletion}" "${delete_inactive_date}"
+
+    fi
+  fi
+done | sort

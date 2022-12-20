@@ -15,11 +15,11 @@ The script uses the `date` command which can vary from OS to OS and as we are us
 #### Prerequisites 
 
 - [Docker](https://docs.docker.com/get-docker/)
-- Read permissions on AAD 
+- Read permissions on AAD
 
 NOTE: If you're using another tool, like Podman for example, feel free to add a section on how to get the image running as that may help someone else that's using different tools.
 
-Once you have Docker installed and you're in the root of this repo, you can run the following:
+Once you have Docker installed, and you're in the root of this repo, you can run the following:
 
 #### Build and run the image
 
@@ -35,4 +35,21 @@ docker run -it --rm -v `pwd`:/data -v ~/.azure:/root/.azure guest-user-managemen
 
 NOTE: you can omit `-v ~/.azure:/root/.azure` if you would rather use `az login` once the image is running. Leaving it in will mean you do not need to login again.
 
-You should now have what should be a working environment and should be able to run the scripts
+You now have an environment with all the tools you need and be nearly ready to run the scripts
+
+
+#### Running the scripts
+
+If you plan on editing the email template or testing the notifications you will need an API Key 
+
+Inside the running container, get and set the API Key:
+
+```shell
+export API_KEY=$(az keyvault secret show -n guest-user-mgmt-notify-api-key --vault dtssharedservicesprodkv --query value)
+```
+
+Run the script. Setting the first argument (branch name) to test mean you will only get a plan, it's recommended that you only run plans locally so always set this argument to something other than the default branch.
+
+```shell
+./delete-inactive-guest-users.sh test $API_KEY
+```
