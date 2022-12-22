@@ -184,7 +184,7 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
       if [[ "${most_recent_login_date}" == "0001-01-01T00:00:00Z" ]]; then
         printf "Deleting user %s as it looks like the user hasn't logged in and their account is older than %s days\n" "${formatted_name}" "${min_user_age_days}"
       else
-        printf "Plan: User %s will be deleted as the last login recorded was %s and that's more than %s days ago\n" "${formatted_name}" "${most_recent_login_date}"  "${delete_inactive_days}"
+        printf "Plan: User %s hasn't logged in for %s and will be deleted. The last login recorded was %s\n" "${formatted_name}" "${delete_inactive_days}" "${most_recent_login_date}"
       fi
     fi
   elif [[ "${days_until_deletion}" -lt "8"  ]]; then
