@@ -4,6 +4,13 @@ const name = commandArgs[1]
 const apiKey = commandArgs[2]
 const days = commandArgs[3]
 const maxInactiveDays = commandArgs[4]
+const logInByDate = commandArgs[5]
+
+// Error if not all arguments found. Could do with improving
+if (commandArgs.length !== 6) {
+  console.log("Missing an argument! Try again.")
+  process.exit(1)
+}
 
 const NotifyClient = require('notifications-node-client').NotifyClient;
 const notifyClient = new NotifyClient(apiKey);
@@ -17,6 +24,7 @@ let personalisation = {
         'email': emailAddress,
         'days': days,
         'maxInactiveDays': maxInactiveDays,
+        'logInByDate': logInByDate,
 }
 
 notifyClient
