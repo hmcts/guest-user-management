@@ -3,6 +3,12 @@ set -e
 
 cd "$(dirname "$0")"
 
+if [[ $(uname) == "Darwin" ]]; then
+  shopt -s expand_aliases
+  alias date="gdate"
+  which date
+fi
+
 branch=$1
 notify_api_key=$2
 
@@ -156,7 +162,7 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
     if [[ "${most_recent_login_date_retry}" != "null" ]] && [[ "${most_recent_login_date_retry}" > "${most_recent_login_date}"  ]]; then
       most_recent_login_date="${most_recent_login_date_retry}"
       days_until_deletion=$(( "${delete_inactive_days}" - (( $(date +%s) - $(date +%s -d "${most_recent_login_date_retry}")) / 86400 + 1) ))
-    elif [[ "${most_recent_login_date_retry}" != "null" ]]; then
+    elif [[ "${most_recent_login_date_retry}" == "null" ]]; then
       printf "Sign in activity is null for user %s with Object ID of %s. Please re-run the pipeline or manually check user.\n" "${formatted_name}" "${object_id}"
       continue
 
@@ -198,7 +204,7 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
       # Send warning notification
       node sendMail.js "${mail}" "${formatted_name}" "${notify_api_key}" "${days_until_deletion}" "${delete_inactive_days}" "${log_in_by_date}"
     else
-      printf "Plan: Warning notification will be sent when this pipeline runs on master %s: last_login=%s, days_until_deletion=%s, log_in_by_date=%s\n" "${formatted_name}" "${most_recent_login_date}" "${days_until_deletion}" "${log_in_by_date}"
+      printf "Plan: Warning notification will be sent to %s when this pipeline runs on the default branch: last_login=%s, days_until_deletion=%s, log_in_by_date=%s\n" "${formatted_name}" "${most_recent_login_date}" "${days_until_deletion}" "${log_in_by_date}"
     fi
   fi
 
