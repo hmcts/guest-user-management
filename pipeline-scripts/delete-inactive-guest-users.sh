@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-
+exit 1
 cd "$(dirname "$0")"
 
 if [[ $(uname) == "Darwin" ]]; then
@@ -175,7 +175,7 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
       if [[ "${most_recent_login_date}" == "0001-01-01T00:00:00Z" ]]; then
         printf "Deleting user %s as it looks like the user hasn't logged in and their account is older than %s days\n" "${formatted_name}" "${min_user_age_days}"
       else
-        printf "Deleting user %s as the last login recorded was %s and that is more than %s days ago\n" "${formatted_name}" "${most_recent_login_date}"  "${delete_inactive_days}"
+        printf "Deleting user %s as the last login recorded was %s and that is more than %s days ago. Object ID %s\n" "${formatted_name}" "${most_recent_login_date}"  "${delete_inactive_days}" "${object_id}"
       fi
 
       # Delete user
