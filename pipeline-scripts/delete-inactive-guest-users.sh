@@ -32,7 +32,6 @@ users_file=guests.json
 
 . delete-user.sh "${branch}"
 
-
 most_recent_login() {
   local most_recent_login_date
 
