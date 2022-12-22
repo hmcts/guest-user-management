@@ -1,12 +1,11 @@
 #!/bin/bash
 set -e
-exit 1
+
 cd "$(dirname "$0")"
 
 if [[ $(uname) == "Darwin" ]]; then
   shopt -s expand_aliases
   alias date="gdate"
-  which date
 fi
 
 branch=$1
@@ -89,9 +88,6 @@ get_user_sign_in_activity() {
   echo "${most_recent_login_date_retry}"
 }
 
-# Delete users that haven't logged in within set number of days and are over a week old
-
-
 # Create file with list of guest users that have accepted their invite
 NEXT_LINK=
 counter=0
@@ -120,7 +116,12 @@ if [[ "${inactive_users_count}" == 0 ]]; then
   exit 0
 fi
 
-# Loop through inactive users
+####
+# Loop through users
+# Delete inactive users
+# Send notifications to users close to being deleted
+####
+
 jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'")' ${users_file} | while read -r user; do
 
   object_id=$(jq -r ".id" <<< "${user}")
@@ -137,38 +138,42 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
 
   most_recent_login_date=$(most_recent_login "${last_sign_in_date_time}" "${last_non_interactive_sign_in_date_time}")
 
+
   if [[ "${most_recent_login_date}" == "null" ]] || [[ "${most_recent_login_date}" == "" ]]; then
-    # Get user directly and check for most recent sign in
-    most_recent_login_date=$(get_user_sign_in_activity "${object_id}")
-
-    if [[ "${most_recent_login_date}" == "null" ]]; then
-      printf "Sign in activity is null for user %s with Object ID of %s. Please re-run the pipeline or manually check user.\n" "${formatted_name}" "${object_id}"
-      continue
-    elif [[ "${most_recent_login_date}" == "" ]]; then
-      printf "No sign in activity found for %s\n" "${formatted_name}"
-      most_recent_login_date="0001-01-01T00:00:00Z"
-    fi
-
+    days_until_deletion="-100"
+  else
+    days_until_deletion=$(( "${delete_inactive_days}" - (( $(date +%s) - $(date +%s -d "${most_recent_login_date}")) / 86400 + 1) ))
   fi
 
-  days_until_deletion=$(( "${delete_inactive_days}" - (( $(date +%s) - $(date +%s -d "${most_recent_login_date}")) / 86400 + 1) ))
-
-  # If user has been inactive for more than the set amount of days via the var delete_inactive_days
-  # get the user specifically and recheck their sign in activity
   if [[ "${days_until_deletion}" -lt "0"  ]]; then
+    sign_in_activity_counter=0
+    most_recent_login_date_retry=
 
-    most_recent_login_date_retry=$(get_user_sign_in_activity "${object_id}")
+    until [[ ${sign_in_activity_counter} == 2 ]] ||  [[ ( "${most_recent_login_date_retry}" != "null" && "${most_recent_login_date_retry}" > "${most_recent_login_date}")  ]]  ; do
 
-    if [[ "${most_recent_login_date_retry}" != "null" ]] && [[ "${most_recent_login_date_retry}" > "${most_recent_login_date}"  ]]; then
-      most_recent_login_date="${most_recent_login_date_retry}"
-      days_until_deletion=$(( "${delete_inactive_days}" - (( $(date +%s) - $(date +%s -d "${most_recent_login_date_retry}")) / 86400 + 1) ))
-    elif [[ "${most_recent_login_date_retry}" == "null" ]]; then
-      printf "Sign in activity is null for user %s with Object ID of %s. Please re-run the pipeline or manually check user.\n" "${formatted_name}" "${object_id}"
-      continue
+      most_recent_login_date_retry=$(get_user_sign_in_activity "${object_id}")
 
-    fi
+      if [[ "${most_recent_login_date_retry}" == "" ]]; then
+        most_recent_login_date="0001-01-01T00:00:00Z"
+        break
+      fi
+
+      if [[ "${most_recent_login_date_retry}" != "null" ]] && [[ "${most_recent_login_date_retry}" != "" ]] && [[ "${most_recent_login_date_retry}" > "${most_recent_login_date}"  ]]; then
+        most_recent_login_date="${most_recent_login_date_retry}"
+        days_until_deletion=$(( "${delete_inactive_days}" - (( $(date +%s) - $(date +%s -d "${most_recent_login_date_retry}")) / 86400 + 1) ))
+        break
+      fi
+
+      sign_in_activity_counter=$(( sign_in_activity_counter + 1 ))
+      sleep 1
+    done
   fi
-  # Delete user if sign in activity suggests that the user hasn't signed in
+
+  if [[ "${most_recent_login_date}" == "null" ]]; then
+    printf "Sign in activity is null for user %s with Object ID of %s. Please re-run the pipeline or manually check user.\n" "${formatted_name}" "${object_id}"
+    continue
+  fi
+
   if [[ "${days_until_deletion}" -lt "0"  ]]; then
 
     if [[ "${branch}" =~ ^(main|master)$ ]]; then
@@ -184,9 +189,10 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
       if [[ "${most_recent_login_date}" == "0001-01-01T00:00:00Z" ]]; then
         printf "Deleting user %s as it looks like the user hasn't logged in and their account is older than %s days\n" "${formatted_name}" "${min_user_age_days}"
       else
-        printf "Plan: User %s hasn't logged in for %s and will be deleted. The last login recorded was %s\n" "${formatted_name}" "${delete_inactive_days}" "${most_recent_login_date}"
+        printf "Plan: User %s hasn't logged in for %s days and will be deleted. The last login recorded was %s\n" "${formatted_name}" "${delete_inactive_days}" "${most_recent_login_date}"
       fi
     fi
+
   elif [[ "${days_until_deletion}" -lt "8"  ]]; then
 
     # Set log in by date
