@@ -40,5 +40,5 @@ export API_KEY=$(az keyvault secret show -n guest-user-mgmt-notify-api-key --vau
 Run the script. Setting the first argument (branch name) to test mean you will only get a plan, it's recommended that you only run plans locally so always set this argument to something other than the default branch.
 
 ```shell
-./delete-inactive-guest-users.sh test $API_KEY
+./pipeline-scripts/delete-inactive-guest-users.sh test $API_KEY
 ```
