@@ -192,9 +192,7 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
         printf "Plan: User %s hasn't logged in for %s days and will be deleted. The last login recorded was %s\n" "${formatted_name}" "${delete_inactive_days}" "${most_recent_login_date}"
       fi
     fi
-
-  elif [[ "${days_until_deletion}" -lt "8"  ]]; then
-
+  elif [[ "${days_until_deletion}" =~ ^(1|3|5|7)$ ]]; then
     # Set log in by date
     log_in_by_date=$(date "+%d-%m-%Y ${pipeline_scheduled_run_time}" -d "${most_recent_login_date} + ${delete_inactive_days} days")
 
@@ -212,6 +210,13 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
     else
       printf "Plan: Warning notification will be sent to %s when this pipeline runs on the default branch: last_login=%s, days_until_deletion=%s, log_in_by_date=%s\n" "${formatted_name}" "${most_recent_login_date}" "${days_until_deletion}" "${log_in_by_date}"
     fi
+
+  elif [[ "${days_until_deletion}" =~ ^(2|4|6)$ ]]; then
+    # Set log in by date
+    log_in_by_date=$(date "+%d-%m-%Y ${pipeline_scheduled_run_time}" -d "${most_recent_login_date} + ${delete_inactive_days} days")
+
+    printf "Plan: Will not send warning as notifications are sent 1,3,5 and 7 days before deletion. %s has %s days to log in: last_login=%s, log_in_by_date=%s\n" "${formatted_name}" "${days_until_deletion}" "${most_recent_login_date}" "${log_in_by_date}"
+
   fi
 
   # Leaving this here to mitigate issues with request limits and throttling

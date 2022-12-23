@@ -28,8 +28,9 @@ let personalisation = {
 }
 
 notifyClient
-    .sendEmail(templateId, "matt.slater@justice.gov.uk", {
-        personalisation: personalisation,
+    .sendEmail(templateId,
+        "matt.slater@justice.gov.uk",
+        { personalisation: personalisation,
         reference: null,
         emailReplyToId: "7bb0ab72-86ca-4f88-88f9-e9293dd37cb2"
     })
