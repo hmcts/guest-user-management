@@ -165,7 +165,7 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
       fi
 
       sign_in_activity_counter=$(( sign_in_activity_counter + 1 ))
-      sleep 1
+      sleep 2
     done
   fi
 
