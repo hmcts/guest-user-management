@@ -20,6 +20,10 @@ variables:
     value: ubuntu-latest
   - name: service_connection
     value: GA
+  - name: apiKeyVault
+    value: dtssharedservicesprodkv
+  - name: apiKeyName
+    value: guest-user-mgmt-notify-api-key
 
 stages:
   - stage: DeleteInactiveGuestUsers
@@ -30,6 +34,20 @@ stages:
         timeoutInMinutes: ${{ variables.timeoutInMinutes }}
         steps:
           - checkout: self
+
+          - task: AzureKeyVault@1
+            displayName: Retrieve keyvault secret for API Key
+            inputs:
+              ConnectedServiceName: ${{ variables.service_connection }}
+              keyVaultName: ${{ variables.apiKeyVault }}
+              secretsFilter: ${{ variables.apiKeyName }}
+              runAsPreJob: false
+
+          - script: |
+              npm install --production
+            displayName: "npm install"
+            workingDirectory: "pipeline-scripts"
+
           - task: AzureCLI@2
             displayName: DeleteUnacceptedInvites
             inputs:
@@ -45,4 +63,5 @@ stages:
               scriptType: bash
               scriptLocation: scriptPath
               scriptPath: "$(System.DefaultWorkingDirectory)/pipeline-scripts/delete-inactive-guest-users.sh"
-              arguments: $(Build.SourceBranchName)
+              arguments: $(Build.SourceBranchName) $(guest-user-mgmt-notify-api-key)
+
