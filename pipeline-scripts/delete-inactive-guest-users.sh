@@ -184,7 +184,8 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
       fi
 
       # Delete user
-#      az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${1}"
+      az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${1}"
+
     else
       if [[ "${most_recent_login_date}" == "0001-01-01T00:00:00Z" ]]; then
         printf "Deleting user %s as it looks like the user hasn't logged in and their account is older than %s days\n" "${formatted_name}" "${min_user_age_days}"
@@ -219,6 +220,6 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
 
   fi
 
-  # Leaving this here to mitigate issues with request limits and throttling
+  # mitigate issues with request limits and throttling
   sleep 3
 done
