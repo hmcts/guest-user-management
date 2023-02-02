@@ -184,7 +184,7 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
       fi
 
       # Delete user
-      az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${1}"
+      az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${object_id}"
 
     else
       if [[ "${most_recent_login_date}" == "0001-01-01T00:00:00Z" ]]; then
