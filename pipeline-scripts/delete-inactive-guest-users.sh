@@ -1,7 +1,7 @@
 #!/bin/bash
 #set -e
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" || exit 1
 
 if [[ $(uname) == "Darwin" ]]; then
   shopt -s expand_aliases
@@ -22,7 +22,7 @@ delete_inactive_days=31
 # Number of days old that an account has to be before being processed for activity
 min_user_age_days=7
 
-max_inactive_days=$(("${delete_inactive_days}" - "${warn_inactive_days}"))
+max_inactive_days=$((${delete_inactive_days} - ${warn_inactive_days}))
 max_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${max_inactive_days} days ago")
 
 delete_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${delete_inactive_days} days ago")
@@ -142,7 +142,7 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
   if [[ "${most_recent_login_date}" == "null" ]] || [[ "${most_recent_login_date}" == "" ]]; then
     days_until_deletion="-100"
   else
-    days_until_deletion=$(( "${delete_inactive_days}" - (( $(date +%s) - $(date +%s -d "${most_recent_login_date}")) / 86400 + 1) ))
+    days_until_deletion=$(( ${delete_inactive_days} - (( $(date +%s) - $(date +%s -d "${most_recent_login_date}")) / 86400 + 1) ))
   fi
 
   if [[ "${days_until_deletion}" -lt "0"  ]]; then
