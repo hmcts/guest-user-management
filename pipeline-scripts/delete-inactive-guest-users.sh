@@ -183,7 +183,15 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
         printf "Deleting user %s as the last login recorded was %s and that is more than %s days ago. Object ID %s\n" "${formatted_name}" "${most_recent_login_date}"  "${delete_inactive_days}" "${object_id}"
       fi
 
+      role_assignments=$(az rest --method get --uri "https://graph.microsoft.com/beta/roleManagement/directory/transitiveRoleAssignments?\$count=true&\$filter=principalId eq '$object_id'&\$select=id" --headers='{"ConsistencyLevel": "eventual"}' | jq -r '.value[].id')
+
+      echo "Deleting roles assigned to user"
+      for assignment in $role_assignments; do
+        az rest --method delete --uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignments/$assignment"
+      done
+
       # Delete user
+      echo "Deleting user"
       az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${object_id}" || echo "Error deleting user ${display_name}"
 
     else
