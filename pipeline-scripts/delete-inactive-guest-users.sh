@@ -187,11 +187,10 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
 
       echo "$role_assignments"
 
-
       echo "Deleting roles assigned to user"
-      jq -c '.value[]' | while read -r role_assignments; do
-        role_assignment_id=$(jq -r ".id" <<< "${role_assignments}")
-        principal_id=$(jq -r ".principalId" <<< "${role_assignments}")
+      jq -c '.value' | while read -r ra; do
+        role_assignment_id=$(jq -r ".id" <<< "${ra}")
+        principal_id=$(jq -r ".principalId" <<< "${ra}")
 
         if [[ ${principal_id} == "${object_id}" ]]; then
           # Delete role assignment if it's a direct assignment
