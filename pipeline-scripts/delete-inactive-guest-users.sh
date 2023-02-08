@@ -1,7 +1,7 @@
 #!/bin/bash
 #set -e
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" || exit 1
 
 if [[ $(uname) == "Darwin" ]]; then
   shopt -s expand_aliases
@@ -22,7 +22,7 @@ delete_inactive_days=31
 # Number of days old that an account has to be before being processed for activity
 min_user_age_days=7
 
-max_inactive_days=$(("${delete_inactive_days}" - "${warn_inactive_days}"))
+max_inactive_days=$((${delete_inactive_days} - ${warn_inactive_days}))
 max_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${max_inactive_days} days ago")
 
 delete_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${delete_inactive_days} days ago")
@@ -142,7 +142,7 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
   if [[ "${most_recent_login_date}" == "null" ]] || [[ "${most_recent_login_date}" == "" ]]; then
     days_until_deletion="-100"
   else
-    days_until_deletion=$(( "${delete_inactive_days}" - (( $(date +%s) - $(date +%s -d "${most_recent_login_date}")) / 86400 + 1) ))
+    days_until_deletion=$(( ${delete_inactive_days} - (( $(date +%s) - $(date +%s -d "${most_recent_login_date}")) / 86400 + 1) ))
   fi
 
   if [[ "${days_until_deletion}" -lt "0"  ]]; then
@@ -183,7 +183,28 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
         printf "Deleting user %s as the last login recorded was %s and that is more than %s days ago. Object ID %s\n" "${formatted_name}" "${most_recent_login_date}"  "${delete_inactive_days}" "${object_id}"
       fi
 
+      role_assignments=$(az rest --method get --uri "https://graph.microsoft.com/beta/roleManagement/directory/transitiveRoleAssignments?\$count=true&\$filter=principalId eq '$object_id'&\$select=id" --headers='{"ConsistencyLevel": "eventual"}' | jq -r '.value[].id')
+
+      echo "Deleting roles assigned to user"
+      jq -c '.value[]' | while read -r role_assignments; do
+        role_assignment_id=$(jq -r ".id" <<< "${role_assignments}")
+        principal_id=$(jq -r ".principalId" <<< "${role_assignments}")
+
+        if [[ ${principal_id} == "${object_id}" ]]; then
+          # Delete role assignment if it's a direct assignment
+          az rest --method delete --uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignments/$role_assignment_id"
+
+        else
+          # Remove user from group if assignment isn't a direct one
+          printf "Removing user %s from group %s\n" "${object_id}" "${principal_id}"
+          az ad group member remove --group "${principal_id}" --member-id "${object_id}"
+        fi
+
+      done
+
+      sleep 5
       # Delete user
+      echo "Deleting user"
       az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${object_id}" || echo "Error deleting user ${display_name}"
 
     else
