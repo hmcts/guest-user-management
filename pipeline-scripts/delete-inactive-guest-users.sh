@@ -186,10 +186,23 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
       role_assignments=$(az rest --method get --uri "https://graph.microsoft.com/beta/roleManagement/directory/transitiveRoleAssignments?\$count=true&\$filter=principalId eq '$object_id'&\$select=id" --headers='{"ConsistencyLevel": "eventual"}' | jq -r '.value[].id')
 
       echo "Deleting roles assigned to user"
-      for assignment in $role_assignments; do
-        az rest --method delete --uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignments/$assignment"
+      jq -c '.value[]' | while read -r role_assignments; do
+        role_assignment_id=$(jq -r ".id" <<< "${role_assignments}")
+        principal_id=$(jq -r ".principalId" <<< "${role_assignments}")
+
+        if [[ ${principal_id} == "${object_id}" ]]; then
+          # Delete role assignment if it's a direct assignment
+          az rest --method delete --uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignments/$role_assignment_id"
+
+        else
+          # Remove user from group if assignment isn't a direct one
+          printf "Removing user %s from group %s\n" "${object_id}" "${principal_id}"
+          az ad group member remove --group "${principal_id}" --member-id "${object_id}"
+        fi
+
       done
 
+      sleep 5
       # Delete user
       echo "Deleting user"
       az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${object_id}" || echo "Error deleting user ${display_name}"
