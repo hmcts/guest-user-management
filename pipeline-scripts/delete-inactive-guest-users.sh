@@ -192,6 +192,9 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
         role_assignment_id=$(jq -r ".id" <<< "${ra}")
         principal_id=$(jq -r ".principalId" <<< "${ra}")
 
+        echo "role_assignment_id: $role_assignment_id"
+        echo "principal_id: $principal_id"
+
         if [[ ${principal_id} == "${object_id}" ]]; then
           # Delete role assignment if it's a direct assignment
           az rest --method delete --uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignments/$role_assignment_id"
