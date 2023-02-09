@@ -244,11 +244,8 @@ while read -r user; do
 
   fi
 
-  # testing failures
-  false || failures=$(( failures + 1 ))
   # mitigate issues with request limits and throttling
   sleep 3
 done <<< "${inactive_user_list}"
 
-echo $failures
 if [[ "${failures}" -gt 0 ]]; then exit 1; fi
