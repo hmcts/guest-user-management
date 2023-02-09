@@ -22,7 +22,7 @@ delete_inactive_days=31
 # Number of days old that an account has to be before being processed for activity
 min_user_age_days=7
 
-max_inactive_days=$((${delete_inactive_days} - ${warn_inactive_days}))
+max_inactive_days=$((delete_inactive_days - warn_inactive_days))
 max_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${max_inactive_days} days ago")
 
 delete_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${delete_inactive_days} days ago")
@@ -122,7 +122,12 @@ fi
 # Send notifications to users close to being deleted
 ####
 
-jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'")' ${users_file} | while read -r user; do
+# Count failures
+failures=0
+
+inactive_user_list=$(jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'")' ${users_file} )
+
+while read -r user; do
 
   object_id=$(jq -r ".id" <<< "${user}")
   display_name=$(jq -r ".displayName" <<< "${user}")
@@ -142,7 +147,7 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
   if [[ "${most_recent_login_date}" == "null" ]] || [[ "${most_recent_login_date}" == "" ]]; then
     days_until_deletion="-100"
   else
-    days_until_deletion=$(( ${delete_inactive_days} - (( $(date +%s) - $(date +%s -d "${most_recent_login_date}")) / 86400 + 1) ))
+    days_until_deletion=$(( delete_inactive_days - (( $(date +%s) - $(date +%s -d "${most_recent_login_date}")) / 86400 + 1) ))
   fi
 
   if [[ "${days_until_deletion}" -lt "0"  ]]; then
@@ -186,25 +191,24 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
       role_assignments=$(az rest --method get --uri "https://graph.microsoft.com/beta/roleManagement/directory/transitiveRoleAssignments?\$count=true&\$filter=principalId eq '$object_id'" --headers='{"ConsistencyLevel": "eventual"}')
 
       echo "Deleting roles assigned to user"
-      jq -c '.value[]' <<< "${role_assignments}" | while read -r ra; do
+      while read -r ra; do
         role_assignment_id=$(jq -r ".id" <<< "${ra}")
         principal_id=$(jq -r ".principalId" <<< "${ra}")
 
         if [[ ${principal_id} == "${object_id}" ]]; then
           # Delete role assignment if it's a direct assignment
           printf "Deleting direct Role Assignments assigned to user %s\n" "${display_name}"
-          az rest --method delete --uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignments/$role_assignment_id" || echo "Error deleting role assignment for ${display_name}"
-
+          az rest --method delete --uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignments/$role_assignment_id" || failures=$(( failures + 1 ))
         else
           # Remove user from group if assignment isn't a direct one
           printf "Removing user %s from group %s\n" "${display_name}" "${principal_id}"
-          az ad group member remove --group "${principal_id}" --member-id "${object_id}" || echo "Error deleting ${display_name} from group ${principal_id}"
+          az ad group member remove --group "${principal_id}" --member-id "${object_id}" || failures=$(( failures + 1 ))
         fi
-      done
+      done <<< "$(jq -c '.value[]' <<< "${role_assignments}")"
 
       sleep 5
       # Delete user
-      az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${object_id}" || echo "Error deleting user ${display_name}"
+      az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${object_id}" || failures=$(( failures + 1 ))
 
     else
       if [[ "${most_recent_login_date}" == "0001-01-01T00:00:00Z" ]]; then
@@ -242,4 +246,6 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
 
   # mitigate issues with request limits and throttling
   sleep 3
-done
+done <<< "${inactive_user_list}"
+
+if [[ "${failures}" -gt 0 ]]; then exit 1; fi
