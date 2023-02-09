@@ -192,11 +192,12 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
 
         if [[ ${principal_id} == "${object_id}" ]]; then
           # Delete role assignment if it's a direct assignment
+          printf "Deleting direct Role Assignments assigned to user %s\n" "${display_name}"
           az rest --method delete --uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignments/$role_assignment_id" || echo "Error deleting role assignment for ${display_name}"
 
         else
           # Remove user from group if assignment isn't a direct one
-          printf "Removing user %s from group %s\n" "${object_id}" "${principal_id}"
+          printf "Removing user %s from group %s\n" "${display_name}" "${principal_id}"
           az ad group member remove --group "${principal_id}" --member-id "${object_id}" || echo "Error deleting ${display_name} from group ${principal_id}"
         fi
       done
