@@ -203,7 +203,6 @@ jq -c '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'
 
       sleep 5
       # Delete user
-      echo "Deleting user"
       az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${object_id}" || echo "Error deleting user ${display_name}"
 
     else
