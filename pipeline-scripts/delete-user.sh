@@ -6,7 +6,6 @@ branch=$1
 delete_user() {
 
   if [[ $branch == "master" ]]; then
-    echo "Not deleting"
       echo "Deleting user ${3} with the mail address of ${2} and object ID of ${1}"
      # TODO https://github.com/Azure/azure-cli/issues/12946#issuecomment-737196942
      # az ad user delete --id ${1}
