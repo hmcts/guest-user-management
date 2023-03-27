@@ -198,17 +198,17 @@ while read -r user; do
         if [[ ${principal_id} == "${object_id}" ]]; then
           # Delete role assignment if it's a direct assignment
           printf "Deleting direct Role Assignments assigned to user %s\n" "${display_name}"
-          az rest --method delete --uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignments/$role_assignment_id" || failures=$(( failures + 1 ))
+#           az rest --method delete --uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignments/$role_assignment_id" || failures=$(( failures + 1 ))
         else
           # Remove user from group if assignment isn't a direct one
           printf "Removing user %s from group %s\n" "${display_name}" "${principal_id}"
-          az ad group member remove --group "${principal_id}" --member-id "${object_id}" || failures=$(( failures + 1 ))
+#           az ad group member remove --group "${principal_id}" --member-id "${object_id}" || failures=$(( failures + 1 ))
         fi
       done <<< "$(jq -c '.value[]' <<< "${role_assignments}")"
 
       sleep 5
       # Delete user
-      az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${object_id}" || failures=$(( failures + 1 ))
+#       az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${object_id}" || failures=$(( failures + 1 ))
 
     else
       if [[ "${most_recent_login_date}" == "0001-01-01T00:00:00Z" ]]; then
@@ -228,7 +228,7 @@ while read -r user; do
     fi
 
     if [[ "${branch}" =~ ^(main|master)$ ]]; then
-      printf "Sending warning notification %s: last_login=%s, days_until_deletion=%s, log_in_by_date=%s\n" "${formatted_name}" "${most_recent_login_date}" "${days_until_deletion}" "${log_in_by_date}"
+#       printf "Sending warning notification %s: last_login=%s, days_until_deletion=%s, log_in_by_date=%s\n" "${formatted_name}" "${most_recent_login_date}" "${days_until_deletion}" "${log_in_by_date}"
 
       # Send warning notification
       node sendMail.js "${mail}" "${formatted_name}" "${notify_api_key}" "${days_until_deletion}" "${delete_inactive_days}" "${log_in_by_date}" > /dev/null
