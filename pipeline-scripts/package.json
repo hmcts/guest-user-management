@@ -2,6 +2,6 @@
   "name": "guest-user-management",
   "version": "1.0.0",
   "dependencies": {
-    "notifications-node-client": "^5.2.3"
+    "notifications-node-client": "^8.0.0"
   }
 }
