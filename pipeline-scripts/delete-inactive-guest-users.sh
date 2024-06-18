@@ -78,10 +78,10 @@ get_user_sign_in_activity() {
   local last_sign_in_date_time_retry
   local most_recent_login_date_retry
 
-  sign_in_activity=$(az rest --method get --uri "https://graph.microsoft.com/beta/users/${object_id}?select=signInActivity")
+  # sign_in_activity=$(az rest --method get --uri "https://graph.microsoft.com/beta/users/${object_id}?select=signInActivity")
 
-  last_non_interactive_sign_in_date_time_retry=$(jq -r .signInActivity.lastNonInteractiveSignInDateTime <<< "${sign_in_activity}")
-  last_sign_in_date_time_retry=$(jq -r .signInActivity.lastSignInDateTime <<< "${sign_in_activity}")
+  last_non_interactive_sign_in_date_time_retry=$1 # $(jq -r .signInActivity.lastNonInteractiveSignInDateTime <<< "${sign_in_activity}")
+  last_sign_in_date_time_retry=$2 #$(jq -r .signInActivity.lastSignInDateTime <<< "${sign_in_activity}")
 
   most_recent_login_date_retry=$(most_recent_login "${last_sign_in_date_time_retry}" "${last_non_interactive_sign_in_date_time_retry}")
 
@@ -89,24 +89,11 @@ get_user_sign_in_activity() {
 }
 
 # Create file with list of guest users that have accepted their invite
-NEXT_LINK=
-counter=0
 
-until [[ "${NEXT_LINK}" == "null" ]]; do
+    az rest --method get --uri "https://graph.microsoft.com/beta/users?top=999&filter=externalUserState eq 'Accepted' and createdDateTime le ${min_user_age_date}&select=id,signInActivity,createdDateTime,mail,givenName,surname,displayName" --query "value[?(signInActivity.lastSignInDateTime == null || signInActivity.lastSignInDateTime <= \`${delete_inactive_date}\`) && (signInActivity.lastNonInteractiveSignInDateTime == null || signInActivity.lastNonInteractiveSignInDateTime <= \`${delete_inactive_date}\`)]" > ${users_file}
 
-  if [[ ${counter} == 0 ]]; then
-    az rest --method get --uri "https://graph.microsoft.com/beta/users?top=100&filter=externalUserState eq 'Accepted' and createdDateTime le ${min_user_age_date}&select=id,signInActivity,createdDateTime,mail,givenName,surname,displayName" > users-${counter}.json
-  else
-    az rest --method get --uri "${NEXT_LINK}" > users-${counter}.json
-  fi
 
-  NEXT_LINK=$(jq -r '."@odata.nextLink"' users-${counter}.json)
 
-  counter=$(( counter + 1 ))
-
-done
-
-jq -s 'map(.value[])' users-?.json > ${users_file}
 
 
 inactive_users_count=$(jq -r '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | .id' ${users_file} | wc -l )
@@ -156,7 +143,7 @@ while read -r user; do
 
     until [[ ${sign_in_activity_counter} == 2 ]] ||  [[ ( "${most_recent_login_date_retry}" != "null" && "${most_recent_login_date_retry}" > "${most_recent_login_date}")  ]]  ; do
 
-      most_recent_login_date_retry=$(get_user_sign_in_activity "${object_id}")
+      most_recent_login_date_retry=$(get_user_sign_in_activity "${last_non_interactive_sign_in_date_time}" "${last_sign_in_date_time}")
 
       if [[ "${most_recent_login_date_retry}" == "" ]]; then
         most_recent_login_date="0001-01-01T00:00:00Z"
@@ -170,7 +157,7 @@ while read -r user; do
       fi
 
       sign_in_activity_counter=$(( sign_in_activity_counter + 1 ))
-      sleep 2
+      # sleep 2
     done
   fi
 
@@ -206,7 +193,7 @@ while read -r user; do
         fi
       done <<< "$(jq -c '.value[]' <<< "${role_assignments}")"
 
-      sleep 5
+      # sleep 5
       # Delete user
 #       az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${object_id}" || failures=$(( failures + 1 ))
 
@@ -245,7 +232,7 @@ while read -r user; do
   fi
 
   # mitigate issues with request limits and throttling
-  sleep 3
+  # sleep 3
 done <<< "${inactive_user_list}"
 
 if [[ "${failures}" -gt 0 ]]; then exit 1; fi
