@@ -1,5 +1,5 @@
 #!/bin/bash
-# set -e
+set -e
 
 if [[ $(uname) == "Darwin" ]]; then
   shopt -s expand_aliases
@@ -20,7 +20,7 @@ users_file=unaccepted_invites.json
 delete_old_invites() {
   # Create file with users that haven't accepted invite within a week
   # az ad user list --query="[?userType=='Guest' && userState=='PendingAcceptance' && createdDateTime<'${min_user_age_date}' ].{DisplayName: displayName, ObjectId:objectId, Mail:mail}" -o json > ${users_file}
-  az rest --method get --uri "https://graph.microsoft.com/beta/users?top=999&filter=externalUserState eq 'PendingAcceptance' and createdDateTime le ${min_user_age_date}&select=id,createdDateTime,mail,givenName,surname,displayName" -o json > ${users_file}
+  az rest --method get --uri "https://graph.microsoft.com/v1.0/users?$top=999&$filter=externalUserState eq 'PendingAcceptance' and createdDateTime le ${min_user_age_date}&$select=id,createdDateTime,mail,givenName,surname,displayName" -o json > ${users_file}
 
   unaccepted_invite_count=$(jq -r .value[].id ${users_file} | wc -l )
 
