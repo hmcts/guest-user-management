@@ -145,7 +145,7 @@ while read -r user; do
 
       most_recent_login_date_retry=$(get_user_sign_in_activity "${last_non_interactive_sign_in_date_time}" "${last_sign_in_date_time}")
 
-      if [[ "${most_recent_login_date_retry}" == "" ]]; then
+      if [[ "${most_recent_login_date_retry}" == "" ]] || [[ "${most_recent_login_date_retry}" == "null" ]]; then
         most_recent_login_date="0001-01-01T00:00:00Z"
         break
       fi

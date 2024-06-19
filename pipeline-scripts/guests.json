@@ -672,14 +672,6 @@
     "surname": "Cherodian"
   },
   {
-    "createdDateTime": "2022-11-30T15:06:06Z",
-    "displayName": "Chambers, Michelle",
-    "givenName": null,
-    "id": "0383af07-2d0b-437b-80e6-b3380fd6ded8",
-    "mail": "michelle.chambers@justice.gov.uk",
-    "surname": null
-  },
-  {
     "createdDateTime": "2022-11-30T15:06:05Z",
     "displayName": "Grain, Kerrie",
     "givenName": null,
@@ -2928,22 +2920,6 @@
     "surname": null
   },
   {
-    "createdDateTime": "2023-05-31T11:36:22Z",
-    "displayName": "Bruton, Sean S",
-    "givenName": null,
-    "id": "0caf920a-06cc-4266-9358-92ae6cba33b0",
-    "mail": "sean.bruton@justice.gov.uk",
-    "signInActivity": {
-      "lastNonInteractiveSignInDateTime": "2023-07-10T09:55:20Z",
-      "lastNonInteractiveSignInRequestId": "97afb1e0-b004-46b8-b01f-e8144fc12800",
-      "lastSignInDateTime": null,
-      "lastSignInRequestId": null,
-      "lastSuccessfulSignInDateTime": null,
-      "lastSuccessfulSignInRequestId": null
-    },
-    "surname": null
-  },
-  {
     "createdDateTime": "2023-05-31T11:36:23Z",
     "displayName": "Blunsden, Alison",
     "givenName": null,
@@ -3596,22 +3572,6 @@
       "lastSignInRequestId": null,
       "lastSuccessfulSignInDateTime": "2024-03-25T09:47:53Z",
       "lastSuccessfulSignInRequestId": "999f5fbe-4284-44c5-b8d6-c9180801a100"
-    },
-    "surname": null
-  },
-  {
-    "createdDateTime": "2023-05-31T11:36:53Z",
-    "displayName": "Howard, Andrew",
-    "givenName": null,
-    "id": "babd18dd-de78-4d15-8521-b545c5998dac",
-    "mail": "andrew.howard@justice.gov.uk",
-    "signInActivity": {
-      "lastNonInteractiveSignInDateTime": "2024-05-07T09:54:26Z",
-      "lastNonInteractiveSignInRequestId": "fbdb5040-3544-4027-a989-778c1fd50c00",
-      "lastSignInDateTime": "2023-06-09T10:49:25Z",
-      "lastSignInRequestId": "583a55bd-7aec-48bc-9e3f-6cc108ff2e00",
-      "lastSuccessfulSignInDateTime": "2024-05-07T09:54:26Z",
-      "lastSuccessfulSignInRequestId": "fbdb5040-3544-4027-a989-778c1fd50c00"
     },
     "surname": null
   },
@@ -5588,22 +5548,6 @@
       "lastSignInRequestId": "a3c39604-6e27-4a6c-984d-83f723ca9901",
       "lastSuccessfulSignInDateTime": "2023-12-01T09:22:55Z",
       "lastSuccessfulSignInRequestId": "d7c3b0f5-fd84-4e86-86e7-bf4f0f774d00"
-    },
-    "surname": null
-  },
-  {
-    "createdDateTime": "2023-05-31T11:38:15Z",
-    "displayName": "Noble, Fiona",
-    "givenName": null,
-    "id": "d68dd97c-b1d6-40f0-8fd0-91728f127fcf",
-    "mail": "fiona.noble@justice.gov.uk",
-    "signInActivity": {
-      "lastNonInteractiveSignInDateTime": "2024-01-10T13:36:41Z",
-      "lastNonInteractiveSignInRequestId": "b2711c54-7666-4b14-ae53-7fc16f18e401",
-      "lastSignInDateTime": "2023-07-07T11:07:24Z",
-      "lastSignInRequestId": "e3d70ffa-0b45-436e-96ce-c29e36b23100",
-      "lastSuccessfulSignInDateTime": "2024-01-10T13:36:41Z",
-      "lastSuccessfulSignInRequestId": "b2711c54-7666-4b14-ae53-7fc16f18e401"
     },
     "surname": null
   },
