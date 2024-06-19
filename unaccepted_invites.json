@@ -1,6 +1,4 @@
 {
-  "@odata.context": "https://graph.microsoft.com/beta/$metadata#users(id,createdDateTime,mail,givenName,surname,displayName)",
-  "@odata.nextLink": "https://graph.microsoft.com/beta/users?top=999&filter=externalUserState+eq+%27PendingAcceptance%27+and+createdDateTime+le+2024-05-19T12%3a05%3a47Z&select=id%2ccreatedDateTime%2cmail%2cgivenName%2csurname%2cdisplayName&$skiptoken=RFNwdAoAAQAAAAAAAAAAFAAAAKsZrasPq_1As8r1GoZiNX0BAAAAAAAAAAAAAAAAAAAXMS4yLjg0MC4xMTM1NTYuMS40LjIzMzEGAAAAAAABv-_YSvhhCU-JsWCb6rwQWQEgAAAAAQEAAAA",
   "value": [
     {
       "createdDateTime": "2022-03-03T10:29:13Z",
