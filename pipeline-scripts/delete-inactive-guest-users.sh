@@ -90,7 +90,7 @@ get_user_sign_in_activity() {
 
 # Create file with list of guest users that have accepted their invite
 
-    az rest --method get --uri "https://graph.microsoft.com/beta/users?top=999&filter=externalUserState eq 'Accepted' and createdDateTime le ${min_user_age_date}&select=id,signInActivity,createdDateTime,mail,givenName,surname,displayName" --query "value[?(signInActivity.lastSignInDateTime == null || signInActivity.lastSignInDateTime <= \`${delete_inactive_date}\`) && (signInActivity.lastNonInteractiveSignInDateTime == null || signInActivity.lastNonInteractiveSignInDateTime <= \`${delete_inactive_date}\`)]" > ${users_file}
+    az rest --method get --uri "https://graph.microsoft.com/v1.0/users?$top=999&$filter=externalUserState eq 'Accepted' and createdDateTime le ${min_user_age_date}&$select=id,signInActivity,createdDateTime,mail,givenName,surname,displayName" --query "value[?(signInActivity.lastSignInDateTime == null || signInActivity.lastSignInDateTime <= \`${delete_inactive_date}\`) && (signInActivity.lastNonInteractiveSignInDateTime == null || signInActivity.lastNonInteractiveSignInDateTime <= \`${delete_inactive_date}\`)]" > ${users_file}
 
 
 
