@@ -20,7 +20,26 @@ users_file=unaccepted_invites.json
 delete_old_invites() {
   # Create file with users that haven't accepted invite within a week
   # az ad user list --query="[?userType=='Guest' && userState=='PendingAcceptance' && createdDateTime<'${min_user_age_date}' ].{DisplayName: displayName, ObjectId:objectId, Mail:mail}" -o json > ${users_file}
-  az rest --method get --uri "https://graph.microsoft.com/v1.0/users?$top=999&$filter=externalUserState eq 'PendingAcceptance' and createdDateTime le ${min_user_age_date}&$select=id,createdDateTime,mail,givenName,surname,displayName" -o json > ${users_file}
+
+  # Create file with list of guest users that have accepted their invite
+NEXT_LINK=
+counter=0
+
+until [[ "${NEXT_LINK}" == "null" ]]; do
+
+  if [[ ${counter} == 0 ]]; then
+    az rest --method get --uri "https://graph.microsoft.com/v1.0/users?$top=999&$filter=externalUserState eq 'PendingAcceptance' and createdDateTime le ${min_user_age_date}&$select=id,createdDateTime,mail,givenName,surname,displayName" > users-${counter}.json
+  else
+    az rest --method get --uri "${NEXT_LINK}" > users-${counter}.json
+  fi
+
+  NEXT_LINK=$(jq -r '."@odata.nextLink"' users-${counter}.json)
+
+  counter=$(( counter + 1 ))
+
+done
+
+jq -s 'map(.value[])' users-?.json > ${users_file}
 
   unaccepted_invite_count=$(jq -r .value[].id ${users_file} | wc -l )
 
