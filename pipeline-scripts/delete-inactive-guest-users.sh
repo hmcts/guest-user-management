@@ -78,8 +78,6 @@ get_user_sign_in_activity() {
   local last_sign_in_date_time_retry
   local most_recent_login_date_retry
 
-  # sign_in_activity=$(az rest --method get --uri "https://graph.microsoft.com/beta/users/${object_id}?select=signInActivity")
-
   last_non_interactive_sign_in_date_time_retry=$1 # $(jq -r .signInActivity.lastNonInteractiveSignInDateTime <<< "${sign_in_activity}")
   last_sign_in_date_time_retry=$2 #$(jq -r .signInActivity.lastSignInDateTime <<< "${sign_in_activity}")
 
@@ -174,24 +172,6 @@ while read -r user; do
       else
         printf "Deleting user %s as the last login recorded was %s and that is more than %s days ago. Object ID %s\n" "${formatted_name}" "${most_recent_login_date}"  "${delete_inactive_days}" "${object_id}"
       fi
-
-      role_assignments=$(az rest --method get --uri "https://graph.microsoft.com/beta/roleManagement/directory/transitiveRoleAssignments?\$count=true&\$filter=principalId eq '$object_id'" --headers='{"ConsistencyLevel": "eventual"}')
-
-      echo "Deleting roles assigned to user"
-      while read -r ra; do
-        role_assignment_id=$(jq -r ".id" <<< "${ra}")
-        principal_id=$(jq -r ".principalId" <<< "${ra}")
-
-        if [[ ${principal_id} == "${object_id}" ]]; then
-          # Delete role assignment if it's a direct assignment
-          printf "Deleting direct Role Assignments assigned to user %s\n" "${display_name}"
-#           az rest --method delete --uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignments/$role_assignment_id" || failures=$(( failures + 1 ))
-        else
-          # Remove user from group if assignment isn't a direct one
-          printf "Removing user %s from group %s\n" "${display_name}" "${principal_id}"
-#           az ad group member remove --group "${principal_id}" --member-id "${object_id}" || failures=$(( failures + 1 ))
-        fi
-      done <<< "$(jq -c '.value[]' <<< "${role_assignments}")"
 
       # sleep 5
       # Delete user
