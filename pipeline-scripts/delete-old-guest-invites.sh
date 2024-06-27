@@ -33,7 +33,7 @@ delete_old_invites() {
     do
 
       delete_user "$object_id" "$mail" "$display_name" &
-    
+      sleep 1
     done <<< "$(jq -r '.value[] | "\(.id) \(.mail) \(.displayName)"' ${users_file})"
     wait
   else

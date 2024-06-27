@@ -14,13 +14,13 @@ notify_api_key=$2
 pipeline_scheduled_run_time="02:00"
 
 # Number of days before deletion date that a user will start getting notified about being deleted
-warn_inactive_days=7
+warn_inactive_days=15
 
 # Number of days a user can be inactive before being deleted
-delete_inactive_days=31
+delete_inactive_days=90
 
 # Number of days old that an account has to be before being processed for activity
-min_user_age_days=7
+min_user_age_days=15
 
 max_inactive_days=$((delete_inactive_days - warn_inactive_days))
 max_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${max_inactive_days} days ago")
@@ -165,6 +165,27 @@ while read -r user; do
   fi
 
   if [[ "${days_until_deletion}" -lt "0"  ]]; then
+
+      ## TODO: remove this after first run  ########
+            log_in_by_date=$(date +%d-%m-%Y -d "7 days")
+
+        # Check email isn't null
+        if [[ "${mail}" == "null" ]]; then
+          printf "No email address found for user %s. PLease re-run the pipeline or check the user manually\n" "${formatted_name}"
+          continue
+        fi
+
+        if [[ "${branch}" =~ ^(main|master)$ ]]; then
+    #       printf "Sending warning notification %s: last_login=%s, days_until_deletion=%s, log_in_by_date=%s\n" "${formatted_name}" "${most_recent_login_date}" "${days_until_deletion}" "${log_in_by_date}"
+
+          # Send warning notification
+          node sendMail.js "${mail}" "${formatted_name}" "${notify_api_key}" "${days_until_deletion}" "${delete_inactive_days}" "${log_in_by_date}" > /dev/null
+        else
+          printf "Plan: Warning notification will be sent to %s when this pipeline runs on the default branch: last_login=%s, days_until_deletion=%s, log_in_by_date=%s\n" "${formatted_name}" "${most_recent_login_date}" "${days_until_deletion}" "${log_in_by_date}"
+        fi
+
+    ######## END of TO DO ########
+
 
     if [[ "${branch}" =~ ^(main|master)$ ]]; then
       if [[ "${most_recent_login_date}" == "0001-01-01T00:00:00Z" ]]; then
