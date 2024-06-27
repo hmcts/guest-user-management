@@ -1,21 +1,31 @@
 #!/bin/bash
 set -e
 
+if [[ $(uname) == "Darwin" ]]; then
+  shopt -s expand_aliases
+  alias date="gdate"
+fi
+
 branch=$1
 
-min_user_age_days=7
+min_user_age_days=31
 min_user_age_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${min_user_age_days} days ago")
+echo "min_user_age_date=${min_user_age_date}"
 
-users_file=unaccepted_invites.txt
+users_file=unaccepted_invites.json
 
 . pipeline-scripts/delete-user.sh $branch
 
 # Remove guest users in Azure AAD that haven't accepted their invite after 31 days
 delete_old_invites() {
   # Create file with users that haven't accepted invite within a week
-  az ad user list --query="[?userType=='Guest' && userState=='PendingAcceptance' && createdDateTime<'${min_user_age_date}' ].{DisplayName: displayName, ObjectId:objectId, Mail:mail}" -o json > ${users_file}
+  # az ad user list --query="[?userType=='Guest' && userState=='PendingAcceptance' && createdDateTime<'${min_user_age_date}' ].{DisplayName: displayName, ObjectId:objectId, Mail:mail}" -o json > ${users_file}
 
-  unaccepted_invite_count=$(jq -r .[].ObjectId ${users_file} | wc -l )
+  # Create file with list of guest users that have accepted their invite
+
+  az rest --method GET --uri "https://graph.microsoft.com/v1.0/users?\$top=999&\$filter=externalUserState eq 'PendingAcceptance' and createdDateTime le ${min_user_age_date}&\$select=id,createdDateTime,mail,givenName,surname,displayName" -o json > ${users_file}
+
+  unaccepted_invite_count=$(jq -r .value[].id ${users_file} | wc -l )
 
   if [[ ${unaccepted_invite_count} -gt 0 ]]; then
     echo "Number of users to be deleted: ${unaccepted_invite_count}"
@@ -23,8 +33,8 @@ delete_old_invites() {
     do
 
       delete_user "$object_id" "$mail" "$display_name" &
-    
-    done <<< "$(jq -r '.[] | "\(.ObjectId) \(.Mail) \(.DisplayName)"' ${users_file})"
+      sleep 1
+    done <<< "$(jq -r '.value[] | "\(.id) \(.mail) \(.displayName)"' ${users_file})"
     wait
   else
     echo "No unaccepted invites found, nothing to do."

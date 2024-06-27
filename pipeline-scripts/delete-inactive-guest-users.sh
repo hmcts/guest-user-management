@@ -14,13 +14,13 @@ notify_api_key=$2
 pipeline_scheduled_run_time="02:00"
 
 # Number of days before deletion date that a user will start getting notified about being deleted
-warn_inactive_days=7
+warn_inactive_days=15
 
 # Number of days a user can be inactive before being deleted
-delete_inactive_days=31
+delete_inactive_days=90
 
 # Number of days old that an account has to be before being processed for activity
-min_user_age_days=7
+min_user_age_days=15
 
 max_inactive_days=$((delete_inactive_days - warn_inactive_days))
 max_inactive_date=$(date +%Y-%m-%dT%H:%m:%SZ -d "${max_inactive_days} days ago")
@@ -78,10 +78,8 @@ get_user_sign_in_activity() {
   local last_sign_in_date_time_retry
   local most_recent_login_date_retry
 
-  sign_in_activity=$(az rest --method get --uri "https://graph.microsoft.com/beta/users/${object_id}?select=signInActivity")
-
-  last_non_interactive_sign_in_date_time_retry=$(jq -r .signInActivity.lastNonInteractiveSignInDateTime <<< "${sign_in_activity}")
-  last_sign_in_date_time_retry=$(jq -r .signInActivity.lastSignInDateTime <<< "${sign_in_activity}")
+  last_non_interactive_sign_in_date_time_retry=$1 # $(jq -r .signInActivity.lastNonInteractiveSignInDateTime <<< "${sign_in_activity}")
+  last_sign_in_date_time_retry=$2 #$(jq -r .signInActivity.lastSignInDateTime <<< "${sign_in_activity}")
 
   most_recent_login_date_retry=$(most_recent_login "${last_sign_in_date_time_retry}" "${last_non_interactive_sign_in_date_time_retry}")
 
@@ -89,24 +87,11 @@ get_user_sign_in_activity() {
 }
 
 # Create file with list of guest users that have accepted their invite
-NEXT_LINK=
-counter=0
 
-until [[ "${NEXT_LINK}" == "null" ]]; do
+    az rest --method get --uri "https://graph.microsoft.com/v1.0/users?\$top=999&\$filter=externalUserState eq 'Accepted' and createdDateTime le ${min_user_age_date}&\$select=id,signInActivity,createdDateTime,mail,givenName,surname,displayName" --query "value[?(signInActivity.lastSignInDateTime == null || signInActivity.lastSignInDateTime <= \`${delete_inactive_date}\`) && (signInActivity.lastNonInteractiveSignInDateTime == null || signInActivity.lastNonInteractiveSignInDateTime <= \`${delete_inactive_date}\`)]" > ${users_file}
 
-  if [[ ${counter} == 0 ]]; then
-    az rest --method get --uri "https://graph.microsoft.com/beta/users?top=100&filter=externalUserState eq 'Accepted' and createdDateTime le ${min_user_age_date}&select=id,signInActivity,createdDateTime,mail,givenName,surname,displayName" > users-${counter}.json
-  else
-    az rest --method get --uri "${NEXT_LINK}" > users-${counter}.json
-  fi
 
-  NEXT_LINK=$(jq -r '."@odata.nextLink"' users-${counter}.json)
 
-  counter=$(( counter + 1 ))
-
-done
-
-jq -s 'map(.value[])' users-?.json > ${users_file}
 
 
 inactive_users_count=$(jq -r '.[] | select(.signInActivity.lastSignInDateTime < "'${max_inactive_date}'" and .signInActivity.lastNonInteractiveSignInDateTime < "'${max_inactive_date}'") | .id' ${users_file} | wc -l )
@@ -156,9 +141,9 @@ while read -r user; do
 
     until [[ ${sign_in_activity_counter} == 2 ]] ||  [[ ( "${most_recent_login_date_retry}" != "null" && "${most_recent_login_date_retry}" > "${most_recent_login_date}")  ]]  ; do
 
-      most_recent_login_date_retry=$(get_user_sign_in_activity "${object_id}")
+      most_recent_login_date_retry=$(get_user_sign_in_activity "${last_non_interactive_sign_in_date_time}" "${last_sign_in_date_time}")
 
-      if [[ "${most_recent_login_date_retry}" == "" ]]; then
+      if [[ "${most_recent_login_date_retry}" == "" ]] || [[ "${most_recent_login_date_retry}" == "null" ]]; then
         most_recent_login_date="0001-01-01T00:00:00Z"
         break
       fi
@@ -170,7 +155,7 @@ while read -r user; do
       fi
 
       sign_in_activity_counter=$(( sign_in_activity_counter + 1 ))
-      sleep 2
+      # sleep 2
     done
   fi
 
@@ -181,6 +166,27 @@ while read -r user; do
 
   if [[ "${days_until_deletion}" -lt "0"  ]]; then
 
+      ## TODO: remove this after first run  ########
+            log_in_by_date=$(date +%d-%m-%Y -d "7 days")
+
+        # Check email isn't null
+        if [[ "${mail}" == "null" ]]; then
+          printf "No email address found for user %s. PLease re-run the pipeline or check the user manually\n" "${formatted_name}"
+          continue
+        fi
+
+        if [[ "${branch}" =~ ^(main|master)$ ]]; then
+    #       printf "Sending warning notification %s: last_login=%s, days_until_deletion=%s, log_in_by_date=%s\n" "${formatted_name}" "${most_recent_login_date}" "${days_until_deletion}" "${log_in_by_date}"
+
+          # Send warning notification
+          node sendMail.js "${mail}" "${formatted_name}" "${notify_api_key}" "${days_until_deletion}" "${delete_inactive_days}" "${log_in_by_date}" > /dev/null
+        else
+          printf "Plan: Warning notification will be sent to %s when this pipeline runs on the default branch: last_login=%s, days_until_deletion=%s, log_in_by_date=%s\n" "${formatted_name}" "${most_recent_login_date}" "${days_until_deletion}" "${log_in_by_date}"
+        fi
+
+    ######## END of TO DO ########
+
+
     if [[ "${branch}" =~ ^(main|master)$ ]]; then
       if [[ "${most_recent_login_date}" == "0001-01-01T00:00:00Z" ]]; then
         printf "Deleting user %s as it looks like the user hasn't logged in and their account is older than %s days\n" "${formatted_name}" "${min_user_age_days}"
@@ -188,25 +194,7 @@ while read -r user; do
         printf "Deleting user %s as the last login recorded was %s and that is more than %s days ago. Object ID %s\n" "${formatted_name}" "${most_recent_login_date}"  "${delete_inactive_days}" "${object_id}"
       fi
 
-      role_assignments=$(az rest --method get --uri "https://graph.microsoft.com/beta/roleManagement/directory/transitiveRoleAssignments?\$count=true&\$filter=principalId eq '$object_id'" --headers='{"ConsistencyLevel": "eventual"}')
-
-      echo "Deleting roles assigned to user"
-      while read -r ra; do
-        role_assignment_id=$(jq -r ".id" <<< "${ra}")
-        principal_id=$(jq -r ".principalId" <<< "${ra}")
-
-        if [[ ${principal_id} == "${object_id}" ]]; then
-          # Delete role assignment if it's a direct assignment
-          printf "Deleting direct Role Assignments assigned to user %s\n" "${display_name}"
-#           az rest --method delete --uri "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignments/$role_assignment_id" || failures=$(( failures + 1 ))
-        else
-          # Remove user from group if assignment isn't a direct one
-          printf "Removing user %s from group %s\n" "${display_name}" "${principal_id}"
-#           az ad group member remove --group "${principal_id}" --member-id "${object_id}" || failures=$(( failures + 1 ))
-        fi
-      done <<< "$(jq -c '.value[]' <<< "${role_assignments}")"
-
-      sleep 5
+      # sleep 5
       # Delete user
 #       az rest --method DELETE --uri "https://graph.microsoft.com/v1.0/users/${object_id}" || failures=$(( failures + 1 ))
 
@@ -245,7 +233,7 @@ while read -r user; do
   fi
 
   # mitigate issues with request limits and throttling
-  sleep 3
+  # sleep 3
 done <<< "${inactive_user_list}"
 
 if [[ "${failures}" -gt 0 ]]; then exit 1; fi

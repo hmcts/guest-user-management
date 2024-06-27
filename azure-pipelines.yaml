@@ -1,8 +1,8 @@
 name: guest-user-management
 
 schedules:
-  - cron: "0 2 * * *"
-    displayName: Daily build @ 2am
+  - cron: "0 11 * * 1" # every Monday 11am UTC
+    displayName: Weekly run @ 11am
     always: true
     branches:
       include:
